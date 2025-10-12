@@ -25,6 +25,17 @@ import { defineConfig } from "vite";
 import { vitePlugin as runtypex } from "runtypex";
 
 export default defineConfig({
+  plugins: [runtypex()],
+});
+```
+
+To disable runtime checks in production builds, pass the option `{ removeInProd: true }` when initializing the Vite plugin.
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import { vitePlugin as runtypex } from "runtypex";
+
+export default defineConfig({
   plugins: [runtypex({ removeInProd: true })],
 });
 ```
@@ -42,7 +53,7 @@ module.exports = {
         loader: "ts-loader",
         options: {
           getCustomTransformers: (program) => ({
-            before: [ tsTransformer({ program, removeInProd: true }) ]
+            before: [ tsTransformer({ program }) ]
           })
         }
       }
