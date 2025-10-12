@@ -1,0 +1,51 @@
+{
+  "name": "runtypex",
+  "version": "0.1.0",
+  "description": "Runtime type guards compiled from TypeScript types. Fast, zero-schema, transformer-based.",
+  "license": "MIT",
+  "author": "Lux",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://example.com/runtypex.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./vite-plugin": {
+      "types": "./dist/esm/transformer/vite-plugin.d.ts",
+      "import": "./dist/esm/transformer/vite-plugin.js",
+      "require": "./dist/cjs/transformer/vite-plugin.js"
+    },
+    "./transformer": {
+      "types": "./dist/esm/transformer/ts-transformer.d.ts",
+      "import": "./dist/esm/transformer/ts-transformer.js",
+      "require": "./dist/cjs/transformer/ts-transformer.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "test": "jest --passWithNoTests"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.8.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.6.3"
+  }
+}

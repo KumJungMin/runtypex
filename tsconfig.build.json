@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "emitDeclarationOnly": false,
+    "sourceMap": true,
+    "module": "ESNext"
+  },
+  "exclude": [
+    "tests",
+    "**/*.test.ts",
+    "**/__tests__/**",
+    "jest.config.cjs"
+  ]
+}
