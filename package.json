@@ -19,15 +19,15 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     },
-    "./vite-plugin": {
+    "./core": {
+      "types": "./dist/esm/core/index.d.ts",    
+      "import": "./dist/esm/core/index.js",
+      "require": "./dist/cjs/core/index.js"
+    },
+    "./transformer/vite-plugin": {
       "types": "./dist/esm/transformer/vite-plugin.d.ts",
       "import": "./dist/esm/transformer/vite-plugin.js",
       "require": "./dist/cjs/transformer/vite-plugin.js"
-    },
-    "./transformer": {
-      "types": "./dist/esm/transformer/ts-transformer.d.ts",
-      "import": "./dist/esm/transformer/ts-transformer.js",
-      "require": "./dist/cjs/transformer/ts-transformer.js"
     }
   },
   "files": [
