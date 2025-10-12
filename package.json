@@ -1,6 +1,6 @@
 {
   "name": "runtypex",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Runtime type guards compiled from TypeScript types. Fast, zero-schema, transformer-based.",
   "license": "MIT",
   "author": "Lux",
