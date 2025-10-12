@@ -10,7 +10,7 @@ import { emitGuardFromType } from "../core";
  *
  * 📘 Purpose
  *  - Replace calls like:
- *      makeValidate<T>(), makeAssert<T>(), makeFallback<T>()
+ *      makeValidate<T>(), makeAssert<T>()
  *    with *inline JavaScript guard functions* derived from TypeScript types.
  *
  * 💡 Features
@@ -28,7 +28,7 @@ export default function vitePluginRuntypex(options?: { removeInProd?: boolean })
 
     transform(code: string, id: string) {
       const isTS = id.endsWith(".ts") || id.endsWith(".tsx");
-      const isTargetFunction = /make(?:Validate|Assert|Fallback)</.test(code);
+      const isTargetFunction = /make(?:Validate|Assert)</.test(code);
       if (!isTS || !isTargetFunction) return;
 
       const { program, checker } = _createProgramFor(id);
@@ -36,12 +36,6 @@ export default function vitePluginRuntypex(options?: { removeInProd?: boolean })
       if (!sf) return;
 
       let mutated = code;
-
-      mutated = mutated.replace(
-        /makeFallback<\s*([^>]+)\s*>\s*\(\s*({[\s\S]*?})\s*\)/g,
-        (_m, typeName, argsText) =>
-          _emitMakeFallback({ program, checker, sf, typeName, argsText, prod, removeInProd }) ?? _m
-      );
 
       // ② makeAssert<T>()
       mutated = mutated.replace(
@@ -122,30 +116,6 @@ function _emitMakeAssert({
 
   const guard = emitGuardFromType(checker, type);
   return `(function(){const G=${guard};return(i)=>{if(!G(i))throw new TypeError("[runtypex] Validation failed.");};})()`;
-}
-
-function _emitMakeFallback({
-  program,
-  checker,
-  sf,
-  typeName,
-  argsText,
-  prod,
-  removeInProd,
-}: any) {
-  const fallback = _extractFallbackExpr(argsText);
-  if (removeInProd && prod) return `(function(){const F=${fallback};return(_)=>F;})()`;
-
-  const type = _resolveTypeByName(program, sf, checker, typeName.trim());
-  if (!type) return null;
-
-  const guard = emitGuardFromType(checker, type);
-  return `(function(){const G=${guard};const F=${fallback};return(i)=>G(i)?i:F;})()`;
-}
-
-function _extractFallbackExpr(objLiteralText: string): string {
-  const m = objLiteralText.match(/fallback\s*:\s*([\s\S]*?)\s*(?:,|$)/m);
-  return m ? m[1].trim() : "undefined";
 }
 
 // ──────────────────────────────────────────────

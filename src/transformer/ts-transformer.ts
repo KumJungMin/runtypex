@@ -13,7 +13,7 @@ import { emitGuardFromType } from "../core";
  * ```
  *
  * 🧠 Purpose:
- *  - Replace makeValidate<T>(), makeAssert<T>(), makeFallback<T>() calls
+ *  - Replace makeValidate<T>(), makeAssert<T>() calls
  *    with *pre-generated runtime validation code* derived from T.
  *
  * 💡 Effect:
@@ -31,7 +31,7 @@ export default function tsTransformer(options: { program: ts.Program; removeInPr
     const visit: ts.Visitor = (node: ts.Node): ts.Node => {
       if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
         const name = node.expression.text;
-        const targetFunctions = ["makeValidate", "makeAssert", "makeFallback"];
+        const targetFunctions = ["makeValidate", "makeAssert"];
 
         if (targetFunctions.includes(name) && node.typeArguments?.length) {
           const typeNode = node.typeArguments[0];
@@ -46,8 +46,6 @@ export default function tsTransformer(options: { program: ts.Program; removeInPr
               return _emitMakeValidate(checker, type, isRemovedInProd);
             case "makeAssert":
               return _emitMakeAssert(checker, type, isRemovedInProd);
-            case "makeFallback":
-              return _emitMakeFallback(checker, type, isRemovedInProd, node);
           }
         }
       }
@@ -102,34 +100,15 @@ function _findLocalDeclaration(sf: ts.SourceFile, name: string): ts.Node | undef
   return found;
 }
 
-function _extractFallbackExpr(objLiteralText: string): string {
-  const m = objLiteralText.match(/fallback\s*:\s*([\s\S]*?)\s*(?:,|$)/m);
-  return m ? m[1].trim() : "undefined";
-}
-
 function _emitMakeValidate(checker: ts.TypeChecker, type: ts.Type, isRemovedInProd: boolean): ts.Identifier {
-  const guard = isRemovedInProd
-    ? "((_)=>true)"
-    : emitGuardFromType(checker, type);
+  const guard = isRemovedInProd ? "((_)=>true)" : emitGuardFromType(checker, type); 
+
   return ts.factory.createIdentifier(guard) as any;
 }
 
 function _emitMakeAssert(checker: ts.TypeChecker, type: ts.Type, isRemovedInProd: boolean): ts.Identifier {
-  const guard = isRemovedInProd
-    ? "((_)=>{})"
-    : emitGuardFromType(checker, type);
+  const guard = isRemovedInProd ? "((_)=>{})" : emitGuardFromType(checker, type);
   const txt = `(function(){const G=${guard};return(i)=>{if(!G(i))throw new TypeError("[runtypex] Validation failed.");};})()`;
-  return ts.factory.createIdentifier(txt) as any;
-}
-
-function _emitMakeFallback(checker: ts.TypeChecker, type: ts.Type, isRemovedInProd: boolean, node: ts.CallExpression): ts.Identifier {
-  const arg0 = node.arguments[0];
-  const argText = arg0 ? arg0.getText() : "{ fallback: undefined }";
-  const fallback = _extractFallbackExpr(argText);
-  if (isRemovedInProd) {
-    return ts.factory.createIdentifier(`(function(){const F=${fallback};return(_)=>F;})()`) as any;
-  }
-  const guard = emitGuardFromType(checker, type);
-  const txt = `(function(){const G=${guard};const F=${fallback};return(i)=>G(i)?i:F;})()`;
+  
   return ts.factory.createIdentifier(txt) as any;
 }
