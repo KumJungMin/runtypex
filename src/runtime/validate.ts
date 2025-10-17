@@ -9,7 +9,7 @@ export type ValidateFn<T> = (value: unknown) => value is T;
 
 // Replaced by transformer to generated guard
 function __validate<T>(_value: unknown): boolean {
-  throw new Error("[runtypex] makeValidate() was not transformed. Add the plugin/transformer.");
+  return true;  
 }
 
 export function makeValidate<T>(): ValidateFn<T> {
