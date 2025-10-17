@@ -1,12 +1,16 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "./dist/esm",
+    "rootDir": "./src",
+    "module": "ESNext",
+    "target": "ESNext",
     "declaration": true,
-    "emitDeclarationOnly": false,
-    "sourceMap": true,
-    "module": "ESNext"
+    "declarationDir": "./dist/esm",
+    "moduleResolution": "Bundler",
+    "isolatedModules": true
   },
+  "include": ["src"],
   "exclude": [
     "tests",
     "**/*.test.ts",
