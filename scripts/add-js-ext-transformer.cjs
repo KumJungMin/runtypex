@@ -1,8 +1,8 @@
-import ts from "typescript";
+const ts = require("typescript");
 
-export default function addJsExtTransformer(): ts.TransformerFactory<ts.SourceFile> {
+function addJsExtTransformer() {
   return (context) => {
-    const visit: ts.Visitor = (node) => {
+    const visit = (node) => {
       // ✅ import ... from "..."
       if (
         ts.isImportDeclaration(node) &&
@@ -42,6 +42,8 @@ export default function addJsExtTransformer(): ts.TransformerFactory<ts.SourceFi
       return ts.visitEachChild(node, visit, context);
     };
 
-    return (sf) => ts.visitNode(sf, visit) as ts.SourceFile;
+    return (sf) => ts.visitNode(sf, visit);
   };
 }
+
+module.exports = addJsExtTransformer;

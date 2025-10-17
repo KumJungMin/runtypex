@@ -1,65 +1,35 @@
 {
   "name": "runtypex",
-  "version": "0.1.5",
-  "description": "Runtime type guards compiled from TypeScript types. Fast, zero-schema, transformer-based.",
+  "version": "0.1.7",
+  "description": "Runtime type guards compiled from TypeScript types.",
   "license": "MIT",
-  "author": "KumJunMin",
-  "sideEffects": false,
+  "author": "KumJungMin",
+  "type": "module",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "https://example.com/runtypex.git"
-  },
-  "bugs": {
-    "url": "https://github.com/KumJungMin/runtypex/issues"
-  },
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
       "types": "./dist/esm/index.d.ts"
-    },
-    "./runtime": {
-      "import": "./dist/esm/runtime/index.js",
-      "types": "./dist/esm/runtime/index.d.ts"
     },
     "./transformer": {
       "import": "./dist/esm/transformer/index.js",
       "types": "./dist/esm/transformer/index.d.ts"
+    },
+    "./runtime": {
+      "import": "./dist/esm/runtime/index.js",
+      "types": "./dist/esm/runtime/index.d.ts"
     }
   },
-  "keywords": [
-    "typescript",
-    "runtime",
-    "type-check",
-    "validation",
-    "vite-plugin",
-    "transformer",
-    "typia"
-  ],
-  "files": [
-    "dist"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
+  "files": ["dist"],
   "scripts": {
-    "clean": "rm -rf dist",
-    "build:transformer": "tsc -p scripts/tsconfig.json",
-    "build": "npm run build:transformer && tsc -p tsconfig.build.json",
-    "test": "jest --passWithNoTests"
-  },
-  "peerDependencies": {
-    "typescript": ">=5.3"
+    "build": "tsc -p tsconfig.build.json"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.14",
-    "@types/node": "^22.8.0",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3",
     "ts-patch": "^3.3.0",
-    "typescript": "^5.9.3"
+    "ts-node": "^10.9.2"
   }
 }

@@ -1,13 +1,13 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist/esm",
     "rootDir": "./src",
+    "outDir": "./dist/esm",
     "target": "ESNext",
     "module": "ESNext",
     "declaration": true,
     "plugins": [
-      { "transform": "./scripts/dist/add-js-ext-transformer.js" }
+      { "transform": "./scripts/add-js-ext-transformer.cjs" }
     ]
   },
   "include": ["src"]
