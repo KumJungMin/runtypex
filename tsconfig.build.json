@@ -1,20 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
     "outDir": "./dist/esm",
-    "module": "ESNext",
+    "rootDir": "./src",
     "target": "ESNext",
+    "module": "ESNext",
     "declaration": true,
-    "declarationDir": "./dist/esm",
-    "moduleResolution": "Bundler",
-    "isolatedModules": true
+    "plugins": [
+      { "transform": "./scripts/dist/add-js-ext-transformer.js" }
+    ]
   },
-  "include": ["src"],
-  "exclude": [
-    "tests",
-    "**/*.test.ts",
-    "**/__tests__/**",
-    "jest.config.cjs"
-  ]
+  "include": ["src"]
 }

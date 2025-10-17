@@ -1,10 +1,9 @@
 {
   "name": "runtypex",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Runtime type guards compiled from TypeScript types. Fast, zero-schema, transformer-based.",
   "license": "MIT",
   "author": "KumJunMin",
-  "type": "module",
   "sideEffects": false,
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -13,24 +12,24 @@
     "type": "git",
     "url": "https://example.com/runtypex.git"
   },
-    "bugs": {
+  "bugs": {
     "url": "https://github.com/KumJungMin/runtypex/issues"
   },
   "exports": {
     ".": {
-    "import": "./dist/esm/index.js",
-    "types": "./dist/esm/index.d.ts"
+      "import": "./dist/esm/index.js",
+      "types": "./dist/esm/index.d.ts"
+    },
+    "./runtime": {
+      "import": "./dist/esm/runtime/index.js",
+      "types": "./dist/esm/runtime/index.d.ts"
+    },
+    "./transformer": {
+      "import": "./dist/esm/transformer/index.js",
+      "types": "./dist/esm/transformer/index.d.ts"
+    }
   },
-  "./runtime": {
-    "import": "./dist/esm/runtime/index.js",
-    "types": "./dist/esm/runtime/index.d.ts"
-  },
-  "./transformer": {
-    "import": "./dist/esm/transformer/index.js",
-    "types": "./dist/esm/transformer/index.d.ts"
-  }
-  },
-    "keywords": [
+  "keywords": [
     "typescript",
     "runtime",
     "type-check",
@@ -42,12 +41,13 @@
   "files": [
     "dist"
   ],
-   "publishConfig": {
+  "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "tsc -p tsconfig.build.json",
+    "build:transformer": "tsc -p scripts/tsconfig.json",
+    "build": "npm run build:transformer && tsc -p tsconfig.build.json",
     "test": "jest --passWithNoTests"
   },
   "peerDependencies": {
@@ -58,6 +58,8 @@
     "@types/node": "^22.8.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.6.3"
+    "ts-node": "^10.9.2",
+    "ts-patch": "^3.3.0",
+    "typescript": "^5.9.3"
   }
 }

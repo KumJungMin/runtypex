@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "CommonJS",         
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "strict": false
+  },
+  "include": ["add-js-ext-transformer.ts"]
+}

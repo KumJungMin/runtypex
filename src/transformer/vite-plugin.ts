@@ -2,7 +2,7 @@
 import type { Plugin } from "vite";
 import ts from "typescript";
 import path from "node:path";
-import { emitGuardFromType } from "../core";
+import { emitGuardFromType } from "../core/index";
 
 /**
  * 🧩 vitePluginRuntypex

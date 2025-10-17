@@ -1,5 +1,5 @@
 import ts from "typescript";
-import { emitGuardFromType } from "../core";
+import { emitGuardFromType } from "../core/index";
 
 /**
  * 🧩 tsTransformer
