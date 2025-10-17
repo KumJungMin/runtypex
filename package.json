@@ -1,9 +1,9 @@
 {
   "name": "runtypex",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Runtime type guards compiled from TypeScript types. Fast, zero-schema, transformer-based.",
   "license": "MIT",
-  "author": "Lux",
+  "author": "KumJunMin",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/cjs/index.js",
@@ -13,33 +13,49 @@
     "type": "git",
     "url": "https://example.com/runtypex.git"
   },
+    "bugs": {
+    "url": "https://github.com/KumJungMin/runtypex/issues"
+  },
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
-    },
-    "./core": {
-      "types": "./dist/esm/core/index.d.ts",    
-      "import": "./dist/esm/core/index.js",
-      "require": "./dist/cjs/core/index.js"
-    },
-    "./transformer/vite-plugin": {
-      "types": "./dist/esm/transformer/vite-plugin.d.ts",
-      "import": "./dist/esm/transformer/vite-plugin.js",
-      "require": "./dist/cjs/transformer/vite-plugin.js"
-    }
+    "import": "./dist/esm/index.js",
+    "require": "./dist/cjs/index.js",
+    "types": "./dist/esm/index.d.ts"
   },
+  "./runtime": {
+    "import": "./dist/esm/runtime/index.js",
+    "require": "./dist/cjs/runtime/index.js",
+    "types": "./dist/esm/runtime/index.d.ts"
+  },
+  "./transformer": {
+    "import": "./dist/esm/transformer/index.js",
+    "require": "./dist/cjs/transformer/index.js",
+    "types": "./dist/esm/transformer/index.d.ts"
+  }
+  },
+    "keywords": [
+    "typescript",
+    "runtime",
+    "type-check",
+    "validation",
+    "vite-plugin",
+    "transformer",
+    "typia"
+  ],
   "files": [
     "dist"
   ],
+   "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "clean": "rm -rf dist",
     "build": "tsc && tsc -p tsconfig.cjs.json",
     "test": "jest --passWithNoTests"
   },
   "peerDependencies": {
-    "typescript": ">=5.3"
+    "typescript": ">=5.3",
+    "vite": ">=4.0.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
