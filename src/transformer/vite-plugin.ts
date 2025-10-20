@@ -37,14 +37,14 @@ export default function vitePluginRuntypex(options?: { removeInProd?: boolean })
 
       let mutated = code;
 
-      // ② makeAssert<T>()
+      // ① makeAssert<T>()
       mutated = mutated.replace(
         /makeAssert<\s*([^>]+)\s*>\s*\(\s*\)/g,
         (_m, typeName) =>
           _emitMakeAssert({ program, checker, sf, typeName, prod, removeInProd }) ?? _m
       );
 
-      // ③ makeValidate<T>()
+      // ② makeValidate<T>()
       mutated = mutated.replace(
         /makeValidate<\s*([^>]+)\s*>\s*\(\s*\)/g,
         (_m, typeName) =>
@@ -61,9 +61,7 @@ export default function vitePluginRuntypex(options?: { removeInProd?: boolean })
 function _createProgramFor(file: string) {
   const tsconfig = _findNearestTsconfig(path.dirname(file));
   const cfg = ts.readConfigFile(tsconfig, ts.sys.readFile);
-  if (cfg.error) {
-    throw new Error(ts.flattenDiagnosticMessageText(cfg.error.messageText, "\n"));
-  }
+  if (cfg.error) throw new Error(ts.flattenDiagnosticMessageText(cfg.error.messageText, "\n"));
 
   const parsed = ts.parseJsonConfigFileContent(cfg.config, ts.sys, path.dirname(tsconfig));
   const program = ts.createProgram({ rootNames: parsed.fileNames, options: parsed.options });
@@ -85,6 +83,9 @@ function _findNearestTsconfig(start: string): string {
   throw new Error("tsconfig.json not found");
 }
 
+// ──────────────────────────────────────────────
+// ② Emit Helpers
+// ──────────────────────────────────────────────
 function _emitMakeValidate({
   program,
   checker,
@@ -94,10 +95,8 @@ function _emitMakeValidate({
   removeInProd,
 }: any) {
   if (removeInProd && prod) return `((_)=>true)`;
-
   const type = _resolveTypeByName(program, sf, checker, typeName.trim());
   if (!type) return null;
-
   return emitGuardFromType(checker, type);
 }
 
@@ -110,16 +109,14 @@ function _emitMakeAssert({
   removeInProd,
 }: any) {
   if (removeInProd && prod) return `((_)=>{})`;
-
   const type = _resolveTypeByName(program, sf, checker, typeName.trim());
   if (!type) return null;
-
   const guard = emitGuardFromType(checker, type);
   return `(function(){const G=${guard};return(i)=>{if(!G(i))throw new TypeError("[runtypex] Validation failed.");};})()`;
 }
 
 // ──────────────────────────────────────────────
-// ③ Type Resolution (support interface/type/enum)
+// ③ Type Resolution (support primitive/interface/type/enum)
 // ──────────────────────────────────────────────
 function _resolveTypeByName(
   program: ts.Program,
@@ -127,24 +124,45 @@ function _resolveTypeByName(
   checker: ts.TypeChecker,
   name: string
 ): ts.Type | null {
-  // scan all source files for local declaration
+  // -1️⃣ Primitive type fallback
+  const primitiveNames = ["string", "number", "boolean", "bigint", "symbol", "null", "undefined"];
+  if (primitiveNames.includes(name)) {
+    const map = {
+      string: (checker as any).getStringType(),
+      number: (checker as any).getNumberType(),
+      boolean: (checker as any).getBooleanType(),
+      bigint: (checker as any).getBigIntType(),
+      symbol: (checker as any).getESSymbolType(),
+      null: (checker as any).getNullType(),
+      undefined: (checker as any).getUndefinedType(),
+    } as const;
+
+    return map[name as keyof typeof map];
+  }
+
+  // 2️⃣ Scan source files
   for (const file of program.getSourceFiles()) {
     const decl = _findLocalDeclaration(file, name);
     if (!decl) continue;
 
-    // interface / class / enum
-    if (ts.isInterfaceDeclaration(decl) || ts.isClassDeclaration(decl) || ts.isEnumDeclaration(decl)) {
-      // @ts-ignore
-      const symbol = checker.getSymbolAtLocation(decl.name);
-      if (symbol) return checker.getDeclaredTypeOfSymbol(symbol);
+    // ✅ type, interface, enum, class
+    if (
+      ts.isInterfaceDeclaration(decl) ||
+      ts.isClassDeclaration(decl) ||
+      ts.isEnumDeclaration(decl)
+    ) {
+      if (decl.name) {
+        const symbol = checker.getSymbolAtLocation(decl.name);
+        if (symbol) return checker.getDeclaredTypeOfSymbol(symbol);
+      }
     }
-    // type alias
+
     if (ts.isTypeAliasDeclaration(decl)) {
       return checker.getTypeFromTypeNode(decl.type);
     }
   }
 
-  // Scope-based fallback
+  // 3️⃣ Scope-based fallback
   const symbol = checker
     .getSymbolsInScope(sf, ts.SymbolFlags.Type | ts.SymbolFlags.Alias | ts.SymbolFlags.Interface)
     .find((s) => s.name === name);
@@ -152,6 +170,9 @@ function _resolveTypeByName(
   return symbol ? checker.getDeclaredTypeOfSymbol(symbol) : null;
 }
 
+// ──────────────────────────────────────────────
+// ④ AST Utility
+// ──────────────────────────────────────────────
 function _findLocalDeclaration(sf: ts.SourceFile, name: string): ts.Node | undefined {
   let found: ts.Node | undefined;
   (function walk(node: ts.Node) {

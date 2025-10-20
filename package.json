@@ -1,6 +1,6 @@
 {
   "name": "runtypex",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Runtime type guards compiled from TypeScript types.",
   "license": "MIT",
   "author": "KumJungMin",
@@ -25,7 +25,8 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "test": "jest"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
