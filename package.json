@@ -1,6 +1,6 @@
 {
   "name": "runtypex",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Runtime type guards compiled from TypeScript types.",
   "license": "MIT",
   "author": "KumJungMin",
