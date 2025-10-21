@@ -141,7 +141,7 @@ Zod, Yup 같은 **스키마 기반 검증기**를 먼저 시도했습니다.
 | ⚠️ 안정성 | 타입 정의와 스키마 불일치 가능 | Safety | Schema can desync from TypeScript type definitions |
 | 🧑‍💻 DX | 타입이 중복 선언됨 (`interface` + `z.object`) | DX | Requires writing both `interface` and `z.object` |
 
----
+<br/>
 
 ### 🧠 새로운 접근 (New Approach): AST로 검증 코드 생성<br/>(A New Approach: Compile-Time Guard Generation via AST)
 
@@ -179,6 +179,11 @@ This approach provides several key advantages 👇
 ### 🧩 예시 (Example)
 
 ```ts
+interface User {
+  id: number
+  name: string
+}
+
 const isUser = makeValidate<User>();
 ```
 
