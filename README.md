@@ -179,17 +179,6 @@ This approach provides several key advantages 👇
 ### 🧩 예시 (Example)
 
 ```ts
-// Before: manual type guard
-function isUser(value: unknown): value is User {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    typeof (value as any).id === "number" &&
-    typeof (value as any).name === "string"
-  );
-}
-
-// After: runtypex auto-generated
 const isUser = makeValidate<User>();
 ```
 
