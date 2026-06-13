@@ -39,24 +39,17 @@ assertUser({ id: "bad" }); // throws
 
 ## Runtime vs Build-Time Behavior
 
-`makeValidate<T>()` and `makeAssert<T>()` are compile-time markers. They become
-real runtime validation functions only when the Vite plugin or TypeScript
-transformer runs during build. Without the build integration, the placeholder
-runtime implementation does not inspect the TypeScript type and should not be
-used as a validation boundary.
+`makeValidate<T>()` and `makeAssert<T>()` need the Vite plugin or TypeScript
+transformer to become real validation functions. `makeMapper<TDto, TDomain>()`
+also benefits from the transformer, but it still has a runtime fallback that can
+interpret the mapper spec directly.
 
-`makeMapper<TDto, TDomain>()` has a runtime fallback that interprets the mapper
-spec directly. When the transformer is enabled, it is replaced with an inline
-mapper generated from the DTO type, domain type, and mapping spec.
-
-If validation is useful during development but should not run in production, set
-`removeInProd: true`. In production builds, generated validators are replaced
-with no-op functions:
-
-```ts
-makeValidate<T>(); // (_) => true
-makeAssert<T>(); // (_) => {}
-```
+| Execution path | `makeValidate<T>()` / `makeAssert<T>()` | `makeMapper<TDto, TDomain>()` | Docs generation |
+| --- | --- | --- | --- |
+| `npm run dev` with the Vite plugin | Works. Validation usually runs. | Works with validation. | Can generate when the dev server starts. |
+| `npm run build` with the Vite plugin | Works. | Works. | Generates docs. |
+| `npm run build` + `NODE_ENV=production` + `removeInProd: true` | Replaced with no-op validation. | Mapping still works; validation is removed. | Unaffected. |
+| No Vite plugin or transformer | Placeholder runtime fallback; does not inspect `T`. | Runtime fallback mapping still works. | Not generated. |
 
 ## Vite Setup
 
