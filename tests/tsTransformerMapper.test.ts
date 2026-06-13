@@ -60,4 +60,20 @@ describe("tsTransformer makeMapper", () => {
     expect(output).not.toContain("DTO validation failed");
     expect(output).not.toContain("Domain validation failed");
   });
+
+  it("turns makeAssert into a no-op assertion in production removal mode", () => {
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+
+    const output = transformSource(`
+      interface User { id: string }
+      const assertUser = makeAssert<User>();
+    `, true);
+
+    if (previous === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previous;
+
+    expect(output).toContain("assertUser");
+    expect(output).not.toContain("Validation failed");
+  });
 });

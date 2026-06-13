@@ -81,7 +81,9 @@ function _emitMakeValidate(checker: ts.TypeChecker, type: ts.Type, isRemovedInPr
 }
 
 function _emitMakeAssert(checker: ts.TypeChecker, type: ts.Type, isRemovedInProd: boolean): ts.Identifier {
-  const guard = isRemovedInProd ? "((_)=>{})" : emitGuardFromType(checker, type);
+  if (isRemovedInProd) return ts.factory.createIdentifier("((_)=>{})") as any;
+
+  const guard = emitGuardFromType(checker, type);
   const txt = `(function(){const G=${guard};return(i)=>{if(!G(i))throw new TypeError("[runtypex] Validation failed.");};})()`;
   
   return ts.factory.createIdentifier(txt) as any;
