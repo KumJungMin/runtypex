@@ -49,9 +49,7 @@ export default function vitePluginRuntypex(options?: { removeInProd?: boolean })
 function _createProgramFor(file: string) {
   const tsconfig = _findNearestTsconfig(path.dirname(file));
   const cfg = ts.readConfigFile(tsconfig, ts.sys.readFile);
-  if (cfg.error) {
-    throw new Error(ts.flattenDiagnosticMessageText(cfg.error.messageText, "\n"));
-  }
+  if (cfg.error) throw new Error(ts.flattenDiagnosticMessageText(cfg.error.messageText, "\n"));
 
   const parsed = ts.parseJsonConfigFileContent(cfg.config, ts.sys, path.dirname(tsconfig));
   const program = ts.createProgram({ rootNames: parsed.fileNames, options: parsed.options });

@@ -1,4 +1,4 @@
-export { makeValidate, makeAssert, type ValidateFn } from "./runtime/validate.js";
+export { makeValidate, makeAssert, type ValidateFn, type AssertFn } from "./runtime/validate.js";
 export {
   defineMap,
   defineMappingPolicy,

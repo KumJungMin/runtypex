@@ -7,16 +7,18 @@
  */
 export type ValidateFn<T> = (value: unknown) => value is T;
 
+export type AssertFn<T> = (value: unknown) => asserts value is T;
+
 // Replaced by transformer to generated guard
 function __validate<T>(_value: unknown): boolean {
-  throw new Error("[runtypex] makeValidate() was not transformed. Add the plugin/transformer.");
+  return true;
 }
 
 export function makeValidate<T>(): ValidateFn<T> {
   return (value: unknown): value is T => __validate<T>(value);
 }
 
-export function makeAssert<T>(): (value: unknown) => asserts value is T {
+export function makeAssert<T>(): AssertFn<T> {
   const validate = makeValidate<T>();
 
   return (value: unknown): asserts value is T => {

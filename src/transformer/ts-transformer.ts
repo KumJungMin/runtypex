@@ -110,7 +110,7 @@ function _readPolicyMode(object: ts.ObjectLiteralExpression): "warn" | "error" |
 }
 
 function _emitMakeValidate(checker: ts.TypeChecker, type: ts.Type, isRemovedInProd: boolean): ts.Identifier {
-  const guard = isRemovedInProd ? "((_)=>true)" : emitGuardFromType(checker, type); 
+  const guard = isRemovedInProd ? "((_)=>true)" : emitGuardFromType(checker, type);
 
   return ts.factory.createIdentifier(guard) as any;
 }
@@ -120,6 +120,6 @@ function _emitMakeAssert(checker: ts.TypeChecker, type: ts.Type, isRemovedInProd
 
   const guard = emitGuardFromType(checker, type);
   const txt = `(function(){const G=${guard};return(i)=>{if(!G(i))throw new TypeError("[runtypex] Validation failed.");};})()`;
-  
+
   return ts.factory.createIdentifier(txt) as any;
 }
