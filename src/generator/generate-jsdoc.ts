@@ -1,9 +1,11 @@
 import ts from "typescript";
 import { parsePath } from "../core/path.js";
-import { readMapRules } from "../core/emitMapperFromSpec.js";
+import { findMapPolicyViolations, handleMapPolicyViolations, readMapRules } from "../core/emitMapperFromSpec.js";
 
 export type GenerateJSDocOptions = {
   name?: string;
+  mappingPolicy?: ts.Expression;
+  policyMode?: "warn" | "error";
 };
 
 export function generateJSDocFromSpec(params: {
@@ -18,6 +20,11 @@ export function generateJSDocFromSpec(params: {
   const name = params.options?.name ?? params.domainType.symbol?.name ?? "GeneratedDomain";
   const rules = readMapRules(checker, params.specNode);
   const lines = [`export interface ${name} {`];
+
+  handleMapPolicyViolations(
+    findMapPolicyViolations(checker, params.specNode, params.options?.mappingPolicy),
+    params.options?.policyMode ?? "warn"
+  );
 
   // Each domain property gets source metadata that editors can show on hover.
   for (const prop of checker.getPropertiesOfType(params.domainType)) {

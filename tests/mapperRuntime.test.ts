@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { defineMap, makeMapper, mapperHelpers, source, transform } from "../src/runtime/mapper";
+import { defineMap, defineMappingPolicy, makeMapper, mapperHelpers, source, transform } from "../src/runtime/mapper";
 
 interface UserDto {
   user_id: string;
@@ -71,5 +71,32 @@ describe("runtime mapper", () => {
         status: "ACTIVE",
       })
     ).toEqual({ isActive: true });
+  });
+
+  it("throws when a mapping violates an error-mode policy", () => {
+    const policy = defineMappingPolicy<UserDto>()({
+      userId: source("user_id"),
+    });
+    const weirdMap = defineMap<UserDto, { realMemberID: string }>()({
+      realMemberID: source("user_id"),
+    });
+
+    expect(() => makeMapper(weirdMap, { policy, policyMode: "error" })).toThrow(
+      'DTO path "user_id" is canonically mapped as "userId", but this map uses "realMemberID".'
+    );
+  });
+
+  it("throws when a policy declares the same DTO path twice", () => {
+    const policy = defineMappingPolicy<UserDto>()({
+      userId: source("user_id"),
+      memberId: source("user_id"),
+    });
+    const userMap = defineMap<UserDto, { userId: string }>()({
+      userId: source("user_id"),
+    });
+
+    expect(() => makeMapper(userMap, { policy, policyMode: "error" })).toThrow(
+      'DTO path "user_id" is canonically mapped as "userId", but this map uses "memberId".'
+    );
   });
 });

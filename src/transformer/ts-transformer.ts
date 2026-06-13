@@ -53,6 +53,7 @@ export default function tsTransformer(options: TransformerOptions): ts.Transform
 
         // makeMapper<TDto, TDomain>(spec) becomes an inline validating mapper.
         if (name === "makeMapper" && node.typeArguments?.length === 2 && node.arguments[0]) {
+          const mapperCallOptions = _readMapperCallOptions(node.arguments[1]);
           const mapper = emitMapperFromSpec({
             checker,
             dtoType: checker.getTypeFromTypeNode(node.typeArguments[0]),
@@ -62,6 +63,8 @@ export default function tsTransformer(options: TransformerOptions): ts.Transform
             options: {
               validateDto: !(removeInProd && prod) && options.validateDto !== false,
               validateDomain: !(removeInProd && prod) && options.validateDomain !== false,
+              mappingPolicy: mapperCallOptions.policy,
+              policyMode: mapperCallOptions.policyMode,
             },
           });
 
@@ -72,6 +75,38 @@ export default function tsTransformer(options: TransformerOptions): ts.Transform
     };
     return (sf: ts.SourceFile) => ts.visitNode(sf, visit) as ts.SourceFile;
   };
+}
+
+function _readMapperCallOptions(node: ts.Expression | undefined): {
+  policy?: ts.Expression;
+  policyMode?: "warn" | "error";
+} {
+  if (!node) return {};
+
+  const expr = ts.isAsExpression(node) || ts.isParenthesizedExpression(node) ? node.expression : node;
+  if (!ts.isObjectLiteralExpression(expr)) return {};
+
+  return {
+    policy: _readExpressionProperty(expr, "policy"),
+    policyMode: _readPolicyMode(expr),
+  };
+}
+
+function _readExpressionProperty(object: ts.ObjectLiteralExpression, name: string): ts.Expression | undefined {
+  for (const item of object.properties) {
+    if (ts.isPropertyAssignment(item) && ts.isIdentifier(item.name) && item.name.text === name) {
+      return item.initializer;
+    }
+    if (ts.isShorthandPropertyAssignment(item) && item.name.text === name) {
+      return item.name;
+    }
+  }
+  return undefined;
+}
+
+function _readPolicyMode(object: ts.ObjectLiteralExpression): "warn" | "error" | undefined {
+  const mode = _readExpressionProperty(object, "policyMode");
+  return mode && ts.isStringLiteral(mode) && (mode.text === "warn" || mode.text === "error") ? mode.text : undefined;
 }
 
 function _emitMakeValidate(checker: ts.TypeChecker, type: ts.Type, isRemovedInProd: boolean): ts.Identifier {

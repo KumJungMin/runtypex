@@ -40,6 +40,13 @@ export type MapSpec<TDto, TDomain> = {
   [K in keyof TDomain]-?: MapRule<TDto, TDomain[K]>;
 };
 
+export type MappingPolicy<TDto> = Record<string, MapRule<TDto, unknown>>;
+export type MappingPolicyMode = "warn" | "error";
+export type MapperOptions<TDto> = {
+  policy?: MappingPolicy<TDto>;
+  policyMode?: MappingPolicyMode;
+};
+
 // Phantom fields preserve DTO/Domain generic information for makeMapper inference.
 declare const DTO_TYPE: unique symbol;
 declare const DOMAIN_TYPE: unique symbol;
@@ -52,6 +59,11 @@ export type DefinedMap<TDto, TDomain> = MapSpec<TDto, TDomain> & {
 export function defineMap<TDto, TDomain>() {
   return <const TSpec extends MapSpec<TDto, TDomain>>(spec: TSpec) =>
     spec as TSpec & DefinedMap<TDto, TDomain>;
+}
+
+/** Declares canonical DTO path -> Domain field names for consistency checks. */
+export function defineMappingPolicy<TDto>() {
+  return <const TSpec extends MappingPolicy<TDto>>(spec: TSpec) => spec;
 }
 
 /** Shorthand rule for direct DTO path reads. */
@@ -88,8 +100,11 @@ export function mapperHelpers<TDto>() {
 
 /** Runtime interpreter used as fallback when the transformer is not configured. */
 export function makeMapper<TDto, TDomain>(
-  spec: DefinedMap<TDto, TDomain> | MapSpec<TDto, TDomain>
+  spec: DefinedMap<TDto, TDomain> | MapSpec<TDto, TDomain>,
+  options?: MapperOptions<TDto>
 ): Mapper<TDto, TDomain> {
+  _handlePolicyViolations(_findPolicyViolations(spec, options?.policy), options?.policyMode ?? "warn");
+
   return ((dto: TDto) => {
     const output: Record<string, unknown> = {};
 
@@ -107,4 +122,42 @@ export function makeMapper<TDto, TDomain>(
 
 function _hasOwn(value: object, key: PropertyKey): boolean {
   return Object.prototype.hasOwnProperty.call(value, key);
+}
+
+function _findPolicyViolations<TDto>(
+  spec: MapSpec<TDto, any>,
+  policy: MappingPolicy<TDto> | undefined
+): string[] {
+  if (!policy) return [];
+
+  const canonicalByPath = new Map<string, string>();
+  const violations: string[] = [];
+
+  for (const key of Object.keys(policy)) {
+    const from = String(policy[key].from);
+    const existing = canonicalByPath.get(from);
+    if (existing && existing !== key) {
+      violations.push(`DTO path "${from}" is canonically mapped as "${existing}", but this map uses "${key}".`);
+      continue;
+    }
+    canonicalByPath.set(from, key);
+  }
+
+  violations.push(...Object.keys(spec).flatMap((key) => {
+    const from = String((spec as Record<string, MapRule<TDto, unknown>>)[key].from);
+    const expected = canonicalByPath.get(from);
+    return expected && expected !== key
+      ? [`DTO path "${from}" is canonically mapped as "${expected}", but this map uses "${key}".`]
+      : [];
+  }));
+
+  return violations;
+}
+
+function _handlePolicyViolations(violations: string[], mode: MappingPolicyMode): void {
+  if (!violations.length) return;
+
+  const message = `[runtypex/mapper] Mapping policy violation:\n${violations.join("\n")}`;
+  if (mode === "error") throw new Error(message);
+  console.warn(message);
 }

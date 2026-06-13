@@ -76,6 +76,49 @@ describe("tsTransformer makeMapper", () => {
     expect(output).not.toContain("defineMap<UserDto");
   });
 
+  it("fails the transform for error-mode mapping policy violations", () => {
+    expect(() =>
+      transformSource(`
+        interface UserDto { user_id: string }
+        interface WeirdUser { realMemberID: string }
+        const policy = defineMappingPolicy<UserDto>()({
+          userId: source("user_id"),
+        });
+        const weirdMap = defineMap<UserDto, WeirdUser>()({
+          realMemberID: source("user_id"),
+        });
+        const toWeirdUser = makeMapper<UserDto, WeirdUser>(weirdMap, {
+          policy,
+          policyMode: "error",
+        });
+      `)
+    ).toThrow('DTO path "user_id" is canonically mapped as "userId", but this map uses "realMemberID".');
+  });
+
+  it("uses the nearest shorthand policy binding during transform", () => {
+    expect(() =>
+      transformSource(`
+        interface UserDto { user_id: string }
+        interface WeirdUser { realMemberID: string }
+        const policy = defineMappingPolicy<UserDto>()({
+          ignoredId: source("user_id"),
+        });
+        function createMapper() {
+          const policy = defineMappingPolicy<UserDto>()({
+            userId: source("user_id"),
+          });
+          const weirdMap = defineMap<UserDto, WeirdUser>()({
+            realMemberID: source("user_id"),
+          });
+          return makeMapper<UserDto, WeirdUser>(weirdMap, {
+            policy,
+            policyMode: "error",
+          });
+        }
+      `)
+    ).toThrow('DTO path "user_id" is canonically mapped as "userId", but this map uses "realMemberID".');
+  });
+
   it("turns makeAssert into a no-op assertion in production removal mode", () => {
     const previous = process.env.NODE_ENV;
     process.env.NODE_ENV = "production";
