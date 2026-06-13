@@ -29,6 +29,11 @@
       "import": "./dist/esm/mapper/index.js",
       "require": "./dist/cjs/mapper/index.js"
     },
+    "./generator": {
+      "types": "./dist/esm/generator/index.d.ts",
+      "import": "./dist/esm/generator/index.js",
+      "require": "./dist/cjs/generator/index.js"
+    },
     "./runtime": {
       "types": "./dist/esm/runtime/index.d.ts",
       "import": "./dist/esm/runtime/index.js",

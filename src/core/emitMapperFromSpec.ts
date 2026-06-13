@@ -7,6 +7,13 @@ export type MapperEmitOptions = {
   validateDomain?: boolean;
 };
 
+export type MapRuleInfo = {
+  key: string;
+  from: string;
+  db?: string;
+  description?: string;
+};
+
 export function emitMapperFromSpec(params: {
   checker: ts.TypeChecker;
   dtoType: ts.Type;
@@ -15,14 +22,14 @@ export function emitMapperFromSpec(params: {
   sourceFile: ts.SourceFile;
   options?: MapperEmitOptions;
 }): string | null {
-  const rules = _readRules(params.checker, params.specNode);
+  const rules = readMapRules(params.checker, params.specNode);
   const props = params.checker.getPropertiesOfType(params.domainType);
   const fields: string[] = [];
 
   for (const prop of props) {
-    const from = rules.get(prop.name);
-    if (!from) return null;
-    fields.push(`${JSON.stringify(prop.name)}:R(${JSON.stringify(prop.name)},${emitPathAccess("input", from)})`);
+    const rule = rules.get(prop.name);
+    if (!rule) return null;
+    fields.push(`${JSON.stringify(prop.name)}:R(${JSON.stringify(prop.name)},${emitPathAccess("input", rule.from)})`);
   }
 
   const specText = params.specNode.getText(params.sourceFile);
@@ -44,17 +51,17 @@ export function emitMapperFromSpec(params: {
   ].join("");
 }
 
-function _readRules(checker: ts.TypeChecker, specNode: ts.Expression): Map<string, string> {
+export function readMapRules(checker: ts.TypeChecker, specNode: ts.Expression): Map<string, MapRuleInfo> {
   const object = _resolveObject(checker, specNode);
-  const rules = new Map<string, string>();
+  const rules = new Map<string, MapRuleInfo>();
   if (!object) return rules;
 
   for (const prop of object.properties) {
     if (!ts.isPropertyAssignment(prop)) continue;
 
     const key = _propertyName(prop.name);
-    const from = _readFrom(prop.initializer);
-    if (key && from) rules.set(key, from);
+    const rule = _readRule(prop.initializer);
+    if (key && rule) rules.set(key, { key, ...rule });
   }
 
   return rules;
@@ -80,22 +87,50 @@ function _resolveObject(checker: ts.TypeChecker, node: ts.Expression): ts.Object
   return null;
 }
 
-function _readFrom(node: ts.Expression): string | null {
+function _readRule(node: ts.Expression): Omit<MapRuleInfo, "key"> | null {
   const expr = _skip(node);
 
   if (ts.isObjectLiteralExpression(expr)) {
-    const fromProp = expr.properties.find(
-      (prop): prop is ts.PropertyAssignment =>
-        ts.isPropertyAssignment(prop) && _propertyName(prop.name) === "from"
-    );
-    return fromProp ? _stringValue(fromProp.initializer) : null;
+    return _readRuleObject(expr);
   }
 
   if (ts.isCallExpression(expr) && expr.arguments[0]) {
-    return _stringValue(expr.arguments[0]);
+    const from = _stringValue(expr.arguments[0]);
+    const metadata = expr.arguments.length > 2 ? expr.arguments[2] : expr.arguments[1];
+    if (!from) return null;
+    return { from, ..._readMetadata(metadata) };
   }
 
   return null;
+}
+
+function _readRuleObject(object: ts.ObjectLiteralExpression): Omit<MapRuleInfo, "key"> | null {
+  const from = _readStringProperty(object, "from");
+  if (!from) return null;
+
+  return {
+    from,
+    db: _readStringProperty(object, "db") ?? undefined,
+    description: _readStringProperty(object, "description") ?? undefined,
+  };
+}
+
+function _readMetadata(node: ts.Expression | undefined): Partial<Omit<MapRuleInfo, "key" | "from">> {
+  const expr = node ? _skip(node) : null;
+  if (!expr || !ts.isObjectLiteralExpression(expr)) return {};
+
+  return {
+    db: _readStringProperty(expr, "db") ?? undefined,
+    description: _readStringProperty(expr, "description") ?? undefined,
+  };
+}
+
+function _readStringProperty(object: ts.ObjectLiteralExpression, name: string): string | null {
+  const prop = object.properties.find(
+    (item): item is ts.PropertyAssignment =>
+      ts.isPropertyAssignment(item) && _propertyName(item.name) === name
+  );
+  return prop ? _stringValue(prop.initializer) : null;
 }
 
 function _skip(node: ts.Expression): ts.Expression {
