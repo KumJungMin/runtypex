@@ -37,6 +37,27 @@ isUser({ id: 1, name: "Lux", active: true }); // true
 assertUser({ id: "bad" }); // throws
 ```
 
+## Runtime vs Build-Time Behavior
+
+`makeValidate<T>()` and `makeAssert<T>()` are compile-time markers. They become
+real runtime validation functions only when the Vite plugin or TypeScript
+transformer runs during build. Without the build integration, the placeholder
+runtime implementation does not inspect the TypeScript type and should not be
+used as a validation boundary.
+
+`makeMapper<TDto, TDomain>()` has a runtime fallback that interprets the mapper
+spec directly. When the transformer is enabled, it is replaced with an inline
+mapper generated from the DTO type, domain type, and mapping spec.
+
+If validation is useful during development but should not run in production, set
+`removeInProd: true`. In production builds, generated validators are replaced
+with no-op functions:
+
+```ts
+makeValidate<T>(); // (_) => true
+makeAssert<T>(); // (_) => {}
+```
+
 ## Vite Setup
 
 ```ts
