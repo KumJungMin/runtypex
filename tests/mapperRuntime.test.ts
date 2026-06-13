@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { defineMap, makeMapper, source, transform } from "../src/runtime/mapper";
+import { defineMap, makeMapper, mapperHelpers, source, transform } from "../src/runtime/mapper";
 
 interface UserDto {
   user_id: string;
@@ -53,5 +53,23 @@ describe("runtime mapper", () => {
     expect(toStatus({ user_id: "u1", profile: { name: "Lux" }, tags: [] })).toEqual({
       status: "INACTIVE",
     });
+  });
+
+  it("provides DTO-typed mapper helpers", () => {
+    const helpers = mapperHelpers<UserDto>();
+    const userMap = defineMap<UserDto, Pick<User, "isActive">>()({
+      isActive: helpers.transform("status", (value, dto) => dto.user_id === "u1" && value === "ACTIVE"),
+    });
+
+    const toUser = makeMapper(userMap);
+
+    expect(
+      toUser({
+        user_id: "u1",
+        profile: { name: "Lux" },
+        tags: [],
+        status: "ACTIVE",
+      })
+    ).toEqual({ isActive: true });
   });
 });

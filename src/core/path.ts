@@ -26,3 +26,9 @@ export function emitPathAccess(root: string, path: string): string {
     return `${expr}[${JSON.stringify(segment)}]`;
   }, root);
 }
+
+export function emitPropertyAccess(root: string, property: string | number): string {
+  if (typeof property === "number") return `${root}[${property}]`;
+  if (/^[A-Za-z_$][\w$]*$/.test(property)) return `${root}.${property}`;
+  return `${root}[${JSON.stringify(property)}]`;
+}

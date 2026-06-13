@@ -6,7 +6,8 @@ module.exports = {
   roots: ["<rootDir>/tests"],
   moduleFileExtensions: ["ts", "tsx", "js"],
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1"
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
   },
   testMatch: ["**/*.test.ts"],
   verbose: true

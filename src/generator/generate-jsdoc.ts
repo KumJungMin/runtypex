@@ -1,6 +1,6 @@
 import ts from "typescript";
-import { parsePath } from "../core/path";
-import { readMapRules } from "../core/emitMapperFromSpec";
+import { parsePath } from "../core/path.js";
+import { readMapRules } from "../core/emitMapperFromSpec.js";
 
 export type GenerateJSDocOptions = {
   name?: string;

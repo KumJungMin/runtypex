@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { GenContext } from "./index";
+import type { GenContext } from "./index.js";
 
 /**
  * Handles primitive types like number, string, boolean...

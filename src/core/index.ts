@@ -1,9 +1,9 @@
 import ts from "typescript";
-import { emitPrimitive } from "./emitPrimitive";
-import { emitLiteralOrEnum } from "./emitLiteralOrEnum";
-import { emitUnionOrIntersection } from "./emitUnionOrIntersection";
-import { emitArrayOrTuple } from "./emitArrayOrTuple";
-import { emitObject } from "./emitObject";
+import { emitPrimitive } from "./emitPrimitive.js";
+import { emitLiteralOrEnum } from "./emitLiteralOrEnum.js";
+import { emitUnionOrIntersection } from "./emitUnionOrIntersection.js";
+import { emitArrayOrTuple } from "./emitArrayOrTuple.js";
+import { emitObject } from "./emitObject.js";
 
 /**
  * ✅ emitGuardFromType

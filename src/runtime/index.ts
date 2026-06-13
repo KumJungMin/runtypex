@@ -1,2 +1,2 @@
-export * from "./validate";
-export * from "./mapper";
+export * from "./validate.js";
+export * from "./mapper.js";

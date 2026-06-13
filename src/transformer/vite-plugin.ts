@@ -2,7 +2,7 @@
 import type { Plugin } from "vite";
 import ts from "typescript";
 import path from "node:path";
-import tsTransformer from "./ts-transformer";
+import tsTransformer from "./ts-transformer.js";
 
 /**
  * 🧩 vitePluginRuntypex

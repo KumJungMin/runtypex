@@ -1,6 +1,6 @@
 import ts from "typescript";
-import { emitGuardFromType } from "./index";
-import { emitPathAccess } from "./path";
+import { emitGuardFromType } from "./index.js";
+import { emitPathAccess } from "./path.js";
 
 export type MapperEmitOptions = {
   validateDto?: boolean;
@@ -22,7 +22,10 @@ export function emitMapperFromSpec(params: {
   sourceFile: ts.SourceFile;
   options?: MapperEmitOptions;
 }): string | null {
-  const rules = readMapRules(params.checker, params.specNode);
+  const specObject = resolveMapSpecObject(params.checker, params.specNode);
+  if (!specObject) return null;
+
+  const rules = readMapRules(params.checker, specObject);
   const props = params.checker.getPropertiesOfType(params.domainType);
   const fields: string[] = [];
 
@@ -32,7 +35,7 @@ export function emitMapperFromSpec(params: {
     fields.push(`${JSON.stringify(prop.name)}:R(${JSON.stringify(prop.name)},${emitPathAccess("input", rule.from)})`);
   }
 
-  const specText = params.specNode.getText(params.sourceFile);
+  const specText = _emitRuntimeSpecText(specObject, params.sourceFile);
   const dtoGuard =
     params.options?.validateDto === false ? null : emitGuardFromType(params.checker, params.dtoType);
   const domainGuard =
@@ -52,7 +55,7 @@ export function emitMapperFromSpec(params: {
 }
 
 export function readMapRules(checker: ts.TypeChecker, specNode: ts.Expression): Map<string, MapRuleInfo> {
-  const object = _resolveObject(checker, specNode);
+  const object = resolveMapSpecObject(checker, specNode);
   const rules = new Map<string, MapRuleInfo>();
   if (!object) return rules;
 
@@ -67,7 +70,7 @@ export function readMapRules(checker: ts.TypeChecker, specNode: ts.Expression): 
   return rules;
 }
 
-function _resolveObject(checker: ts.TypeChecker, node: ts.Expression): ts.ObjectLiteralExpression | null {
+export function resolveMapSpecObject(checker: ts.TypeChecker, node: ts.Expression): ts.ObjectLiteralExpression | null {
   const expr = _skip(node);
   if (ts.isObjectLiteralExpression(expr)) return expr;
 
@@ -80,7 +83,7 @@ function _resolveObject(checker: ts.TypeChecker, node: ts.Expression): ts.Object
     const symbol = checker.getSymbolAtLocation(expr);
     const declaration = symbol?.valueDeclaration ?? symbol?.declarations?.[0];
     if (declaration && ts.isVariableDeclaration(declaration) && declaration.initializer) {
-      return _resolveObject(checker, declaration.initializer);
+      return resolveMapSpecObject(checker, declaration.initializer);
     }
   }
 
@@ -149,4 +152,17 @@ function _propertyName(name: ts.PropertyName): string | null {
 function _stringValue(node: ts.Node): string | null {
   if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
   return null;
+}
+
+function _emitRuntimeSpecText(specObject: ts.ObjectLiteralExpression, sourceFile: ts.SourceFile): string {
+  const marker = "__runtypexSpec";
+  const output = ts.transpileModule(`const ${marker} = ${specObject.getText(sourceFile)};`, {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ESNext,
+    },
+  }).outputText.trim();
+  const prefix = `const ${marker} = `;
+
+  return output.startsWith(prefix) ? output.slice(prefix.length).replace(/;$/, "") : specObject.getText(sourceFile);
 }

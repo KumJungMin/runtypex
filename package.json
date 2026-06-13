@@ -56,7 +56,8 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build": "tsc && tsc -p tsconfig.cjs.json",
-    "test": "jest --passWithNoTests"
+    "test": "jest --passWithNoTests",
+    "test:esm": "npm run build && node tests/smoke-esm.mjs"
   },
   "peerDependencies": {
     "typescript": ">=5.3"

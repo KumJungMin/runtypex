@@ -1,6 +1,6 @@
 import ts from "typescript";
-import { emitGuardFromType } from "../core";
-import { emitMapperFromSpec } from "../core/emitMapperFromSpec";
+import { emitGuardFromType } from "../core/index.js";
+import { emitMapperFromSpec } from "../core/emitMapperFromSpec.js";
 
 type TransformerOptions = {
   program: ts.Program;

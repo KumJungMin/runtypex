@@ -1,1 +1,1 @@
-export * from "./generate-jsdoc";
+export * from "./generate-jsdoc.js";

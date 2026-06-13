@@ -1,1 +1,1 @@
-export * from "../runtime/mapper";
+export * from "../runtime/mapper.js";

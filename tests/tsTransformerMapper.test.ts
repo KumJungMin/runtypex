@@ -61,6 +61,21 @@ describe("tsTransformer makeMapper", () => {
     expect(output).not.toContain("Domain validation failed");
   });
 
+  it("uses object literal text for inline defineMap specs", () => {
+    const output = transformSource(`
+      interface UserDto { id: string }
+      interface User { id: string }
+      const toUser = makeMapper<UserDto, User>(
+        defineMap<UserDto, User>()({
+          id: { from: "id" },
+        })
+      );
+    `);
+
+    expect(output).toContain('input["id"]');
+    expect(output).not.toContain("defineMap<UserDto");
+  });
+
   it("turns makeAssert into a no-op assertion in production removal mode", () => {
     const previous = process.env.NODE_ENV;
     process.env.NODE_ENV = "production";

@@ -69,6 +69,7 @@ const toUser = makeMapper<UserDto, User>(userMap);
 ```
 
 `defineMap<TDto, TDomain>()` checks that every domain field is mapped and that `from` paths exist on the DTO type. `makeMapper()` also has a runtime fallback, and the transformer can inline it with DTO and domain validation.
+Use `mapperHelpers<TDto>()` when helper callbacks need typed access to the source DTO.
 
 ## JSDoc generation
 ```ts

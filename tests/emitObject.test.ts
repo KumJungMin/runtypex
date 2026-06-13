@@ -40,6 +40,23 @@ describe("emitObject", () => {
     expect(norm(result!)).toBe(norm(expected));
   });
 
+  it("uses bracket access for non-identifier property names", () => {
+    const { ctx, type } = createCtxAndType(
+      `
+      interface User {
+        "foo-bar": string;
+      }
+    `,
+      "User"
+    );
+
+    const result = emitObject(ctx, "user", type);
+    const expected =
+      '(typeof user==="object"&&user!==null&&typeof user["foo-bar"]==="string")';
+
+    expect(norm(result!)).toBe(norm(expected));
+  });
+
   it("returns null for non-object types", () => {
     const { ctx, type } = createCtxAndType(`type T = number;`, "T");
     const result = emitObject(ctx, "v", type);

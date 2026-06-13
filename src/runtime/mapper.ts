@@ -1,4 +1,4 @@
-import { getByPath } from "../core/path";
+import { getByPath } from "../core/path.js";
 
 type Primitive =
   | string
@@ -61,10 +61,24 @@ export function source<const TPath extends string, TValue = never>(
 
 export function transform<const TPath extends string, TValue>(
   from: TPath,
-  transform: (value: unknown, dto: any) => TValue,
+  transform: (value: unknown, dto: unknown) => TValue,
   metadata?: MapperMetadata<TValue>
 ) {
   return { from, transform, ...metadata };
+}
+
+export function mapperHelpers<TDto>() {
+  return {
+    source: <const TPath extends PathOf<TDto>, TValue = never>(
+      from: TPath,
+      metadata?: MapperMetadata<TValue>
+    ) => source(from, metadata),
+    transform: <const TPath extends PathOf<TDto>, TValue>(
+      from: TPath,
+      transform: (value: unknown, dto: TDto) => TValue,
+      metadata?: MapperMetadata<TValue>
+    ) => ({ from, transform, ...metadata }),
+  };
 }
 
 export function makeMapper<TDto, TDomain>(

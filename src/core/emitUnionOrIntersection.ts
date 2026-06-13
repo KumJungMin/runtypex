@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { GenContext } from "./index";
+import type { GenContext } from "./index.js";
 
 /**
  * Handles union (A | B) and intersection (A & B) types.

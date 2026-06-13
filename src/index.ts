@@ -1,6 +1,7 @@
 export { makeValidate, makeAssert, type ValidateFn } from "./runtime/validate.js";
 export {
   defineMap,
+  mapperHelpers,
   makeMapper,
   source,
   transform,
