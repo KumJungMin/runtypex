@@ -40,6 +40,50 @@ export default defineConfig({
 });
 ```
 
+## Mapper
+```ts
+import { defineMap, makeMapper, source, transform } from "runtypex/mapper";
+
+interface UserDto {
+  user_id: string;
+  profile: { name: string };
+  status: "ACTIVE" | "INACTIVE";
+}
+
+interface User {
+  id: string;
+  displayName: string;
+  isActive: boolean;
+}
+
+const userMap = defineMap<UserDto, User>()({
+  id: source("user_id", {
+    db: "users.user_id",
+    description: "User id",
+  }),
+  displayName: source("profile.name"),
+  isActive: transform("status", (value) => value === "ACTIVE"),
+});
+
+const toUser = makeMapper<UserDto, User>(userMap);
+```
+
+`defineMap<TDto, TDomain>()` checks that every domain field is mapped and that `from` paths exist on the DTO type. `makeMapper()` also has a runtime fallback, and the transformer can inline it with DTO and domain validation.
+
+## JSDoc generation
+```ts
+import { generateJSDocFromSpec } from "runtypex/generator";
+
+const source = generateJSDocFromSpec({
+  checker,
+  dtoType,
+  domainType,
+  specNode,
+});
+```
+
+The generated interface includes mapper metadata such as DTO path, DTO type, DB column, description, and domain type, so editors can show the source information on hover.
+
 ## Webpack (ts-loader)
 ```js
 // webpack.config.js
@@ -66,4 +110,4 @@ module.exports = {
 - ⚡ **Fast**: compiled checks, no runtime schema walk
 - 🧩 **Simple**: types only, no schema duplication
 - 🧱 **Flexible**: Vite or Webpack
-- 🛠️ **APIs**: `makeValidate`, `makeAssert`
+- 🛠️ **APIs**: `makeValidate`, `makeAssert`, `defineMap`, `makeMapper`
