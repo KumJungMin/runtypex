@@ -30,7 +30,6 @@ type TransformerOptions = {
  *   ✅ Optionally removed in production builds
  */
 export default function tsTransformer(options: TransformerOptions): ts.TransformerFactory<ts.SourceFile> {
-  const { program } = options;
   const checker = options.program.getTypeChecker();
   const removeInProd = !!options.removeInProd;
   const prod = process.env.NODE_ENV === "production";
