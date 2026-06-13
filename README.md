@@ -79,6 +79,7 @@ interface UserDto {
 }
 
 interface User {
+  /** User id */
   id: string;
   displayName: string;
   isActive: boolean;
@@ -87,7 +88,6 @@ interface User {
 const userMap = defineMap<UserDto, User>()({
   id: source("user_id", {
     db: "users.user_id",
-    description: "User id",
     dtoDescription: "User identifier from the user DTO.",
   }),
   displayName: source("profile.name"),

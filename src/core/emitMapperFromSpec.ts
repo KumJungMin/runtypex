@@ -13,6 +13,7 @@ export type MapRuleInfo = {
   key: string;
   from: string;
   db?: string;
+  /** @deprecated Prefer domain property JSDoc for domain field descriptions. */
   description?: string;
   dtoDescription?: string;
 };

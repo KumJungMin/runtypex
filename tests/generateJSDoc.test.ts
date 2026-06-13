@@ -10,17 +10,18 @@ function fixture(dtoDescription = "유저의 id입니다.") {
       profile: { name: string };
     }
     interface User {
+      /** User id */
       id: string;
+      /** Display name */
       displayName: string;
     }
     const userMap = {
       id: {
         from: "user_id",
         db: "users.user_id",
-        description: "User id",
         dtoDescription: ${JSON.stringify(dtoDescription)},
       },
-      displayName: { from: "profile.name", description: "Display name" },
+      displayName: { from: "profile.name" },
     };
   `;
   const sourceFile = ts.createSourceFile(fileName, code, ts.ScriptTarget.ESNext, true);

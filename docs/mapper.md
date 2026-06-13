@@ -77,13 +77,13 @@ Mapping rules can include metadata:
 ```ts
 id: source("user_id", {
   db: "users.user_id",
-  description: "User id",
   dtoDescription: "Identifier returned by the user API.",
 });
 ```
 
 Metadata is not required for mapping. It is mainly used by JSDoc generation and
-documentation tooling.
+documentation tooling. Keep domain field descriptions on the domain type JSDoc;
+mapper metadata should describe DTO/database-specific details.
 
 ## Typed Helpers
 

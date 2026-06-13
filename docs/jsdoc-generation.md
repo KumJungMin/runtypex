@@ -20,14 +20,22 @@ const source = generateJSDocFromSpec({
 This API is intended for build tooling that already has access to the TypeScript
 program, checker, DTO type, domain type, and mapper spec node.
 
-## Metadata Fields
+## Metadata Sources
 
-Mapper metadata can include:
+Domain field descriptions should live on the domain type:
+
+```ts
+interface User {
+  /** User id */
+  id: string;
+}
+```
+
+Mapper metadata can include source-specific details:
 
 ```ts
 source("user_id", {
   db: "users.user_id",
-  description: "User id",
   dtoDescription: "Identifier returned by the user API.",
 });
 ```
@@ -36,18 +44,26 @@ Field meanings:
 
 | Field | Meaning |
 | --- | --- |
-| `description` | Domain field description. Usually used as the first JSDoc sentence. |
+| Domain property JSDoc | Domain field description. Usually used as the first JSDoc sentence. |
 | `dtoDescription` | Optional explanation shown below the DTO path line. |
 | `db` | Optional database table and column reference. |
 
+For older mapper specs, `description` is still read as a fallback when the
+domain property has no JSDoc. New code should prefer domain property JSDoc so
+the domain description is not duplicated per DTO mapping.
+
 ## Generated Output
 
-Given this domain field:
+Given this domain field and mapping:
 
 ```ts
+interface User {
+  /** User id */
+  id: string;
+}
+
 id: source("user_id", {
   db: "users.user_id",
-  description: "User id",
   dtoDescription: "Identifier returned by the user API.",
 });
 ```

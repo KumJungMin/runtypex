@@ -26,6 +26,7 @@ export type Mapper<TDto, TDomain> = (dto: TDto) => TDomain;
 
 export type MapperMetadata<TValue = never> = {
   db?: string;
+  /** @deprecated Prefer domain property JSDoc for domain field descriptions. */
   description?: string;
   dtoDescription?: string;
   default?: TValue;

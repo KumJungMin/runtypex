@@ -45,7 +45,7 @@ describe("runtime mapper", () => {
 
   it("uses defaults when the source path is missing", () => {
     const userMap = defineMap<UserDto, { status: "ACTIVE" | "INACTIVE" }>()({
-      status: source("status", { default: "INACTIVE" as const, description: "status" }),
+      status: source("status", { default: "INACTIVE" as const, dtoDescription: "status" }),
     });
 
     const toStatus = makeMapper(userMap);

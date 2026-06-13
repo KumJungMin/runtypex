@@ -36,11 +36,12 @@ export function generateJSDocFromSpec(params: {
     const declaration = prop.valueDeclaration ?? prop.declarations?.[0];
     const domainType = declaration ? checker.getTypeOfSymbolAtLocation(prop, declaration) : checker.getAnyType();
     const dtoPathType = _getTypeAtPath(checker, params.dtoType, rule.from);
+    const description = _getDomainDescription(checker, prop) ?? rule.description;
     const optional = (prop.getFlags() & ts.SymbolFlags.Optional) !== 0 ? "?" : "";
 
     lines.push("  /**");
-    if (rule.description) {
-      _pushJSDocText(lines, _escapeComment(rule.description));
+    if (description) {
+      _pushJSDocText(lines, _escapeComment(description));
       lines.push("   *");
     }
     _pushJSDocField(lines, "DTO", `${dtoName}.${rule.from}`);
@@ -89,6 +90,11 @@ function _propertyName(name: string): string {
 
 function _escapeComment(value: string): string {
   return value.replace(/\*\//g, "* /");
+}
+
+function _getDomainDescription(checker: ts.TypeChecker, prop: ts.Symbol): string | null {
+  const description = ts.displayPartsToString(prop.getDocumentationComment(checker)).trim();
+  return description || null;
 }
 
 function _pushJSDocField(lines: string[], label: string, value: string): void {
