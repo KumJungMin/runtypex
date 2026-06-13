@@ -52,6 +52,7 @@ export default function tsTransformer(options: TransformerOptions): ts.Transform
           }
         }
 
+        // makeMapper<TDto, TDomain>(spec) becomes an inline validating mapper.
         if (name === "makeMapper" && node.typeArguments?.length === 2 && node.arguments[0]) {
           const mapper = emitMapperFromSpec({
             checker,

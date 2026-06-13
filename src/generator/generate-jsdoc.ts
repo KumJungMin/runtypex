@@ -19,6 +19,7 @@ export function generateJSDocFromSpec(params: {
   const rules = readMapRules(checker, params.specNode);
   const lines = [`export interface ${name} {`];
 
+  // Each domain property gets source metadata that editors can show on hover.
   for (const prop of checker.getPropertiesOfType(params.domainType)) {
     const rule = rules.get(prop.name);
     if (!rule) throw new Error(`[runtypex/generator] ${name}.${prop.name} is not mapped.`);
@@ -46,6 +47,7 @@ export function generateJSDocFromSpec(params: {
   return lines.join("\n");
 }
 
+/** Resolves the DTO type reached by a mapping path such as profile.name or items.0.id. */
 function _getTypeAtPath(checker: ts.TypeChecker, root: ts.Type, path: string): ts.Type | null {
   let current: ts.Type | null = root;
 

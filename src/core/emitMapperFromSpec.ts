@@ -22,6 +22,7 @@ export function emitMapperFromSpec(params: {
   sourceFile: ts.SourceFile;
   options?: MapperEmitOptions;
 }): string | null {
+  // Resolve the concrete object literal so generated code does not retain DSL calls.
   const specObject = resolveMapSpecObject(params.checker, params.specNode);
   if (!specObject) return null;
 
@@ -70,6 +71,7 @@ export function readMapRules(checker: ts.TypeChecker, specNode: ts.Expression): 
   return rules;
 }
 
+/** Finds the mapping object behind inline, defineMap-wrapped, or identifier specs. */
 export function resolveMapSpecObject(checker: ts.TypeChecker, node: ts.Expression): ts.ObjectLiteralExpression | null {
   const expr = _skip(node);
   if (ts.isObjectLiteralExpression(expr)) return expr;
@@ -155,6 +157,7 @@ function _stringValue(node: ts.Node): string | null {
 }
 
 function _emitRuntimeSpecText(specObject: ts.ObjectLiteralExpression, sourceFile: ts.SourceFile): string {
+  // Remove TypeScript-only syntax from inline transform callbacks before embedding.
   const marker = "__runtypexSpec";
   const output = ts.transpileModule(`const ${marker} = ${specObject.getText(sourceFile)};`, {
     compilerOptions: {

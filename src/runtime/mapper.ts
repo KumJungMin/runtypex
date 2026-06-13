@@ -39,6 +39,7 @@ export type MapSpec<TDto, TDomain> = {
   [K in keyof TDomain]-?: MapRule<TDto, TDomain[K]>;
 };
 
+// Phantom fields preserve DTO/Domain generic information for makeMapper inference.
 declare const DTO_TYPE: unique symbol;
 declare const DOMAIN_TYPE: unique symbol;
 
@@ -52,6 +53,7 @@ export function defineMap<TDto, TDomain>() {
     spec as TSpec & DefinedMap<TDto, TDomain>;
 }
 
+/** Shorthand rule for direct DTO path reads. */
 export function source<const TPath extends string, TValue = never>(
   from: TPath,
   metadata?: MapperMetadata<TValue>
@@ -59,6 +61,7 @@ export function source<const TPath extends string, TValue = never>(
   return { from, ...metadata };
 }
 
+/** Shorthand rule for DTO path reads that require a value conversion. */
 export function transform<const TPath extends string, TValue>(
   from: TPath,
   transform: (value: unknown, dto: unknown) => TValue,
@@ -67,6 +70,7 @@ export function transform<const TPath extends string, TValue>(
   return { from, transform, ...metadata };
 }
 
+/** Typed helpers for callbacks that need access to the source DTO shape. */
 export function mapperHelpers<TDto>() {
   return {
     source: <const TPath extends PathOf<TDto>, TValue = never>(
@@ -81,6 +85,7 @@ export function mapperHelpers<TDto>() {
   };
 }
 
+/** Runtime interpreter used as fallback when the transformer is not configured. */
 export function makeMapper<TDto, TDomain>(
   spec: DefinedMap<TDto, TDomain> | MapSpec<TDto, TDomain>
 ): Mapper<TDto, TDomain> {

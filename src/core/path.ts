@@ -1,5 +1,6 @@
 export type PathSegment = string | number;
 
+/** Splits a mapper path into object keys and numeric array indexes. */
 export function parsePath(path: string): PathSegment[] {
   if (!path) return [];
 
@@ -9,6 +10,7 @@ export function parsePath(path: string): PathSegment[] {
   });
 }
 
+/** Runtime fallback reader used when mapper calls are not transformed. */
 export function getByPath(value: unknown, path: string): unknown {
   let current = value as any;
 
@@ -20,6 +22,7 @@ export function getByPath(value: unknown, path: string): unknown {
   return current;
 }
 
+/** Emits bracket-only access for user-authored DTO paths. */
 export function emitPathAccess(root: string, path: string): string {
   return parsePath(path).reduce<string>((expr, segment) => {
     if (typeof segment === "number") return `${expr}[${segment}]`;
@@ -27,6 +30,7 @@ export function emitPathAccess(root: string, path: string): string {
   }, root);
 }
 
+/** Emits compact dot access when safe, with bracket fallback for quoted keys. */
 export function emitPropertyAccess(root: string, property: string | number): string {
   if (typeof property === "number") return `${root}[${property}]`;
   if (/^[A-Za-z_$][\w$]*$/.test(property)) return `${root}.${property}`;
