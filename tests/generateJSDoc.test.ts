@@ -14,7 +14,12 @@ function fixture() {
       displayName: string;
     }
     const userMap = {
-      id: { from: "user_id", db: "users.user_id", description: "User id" },
+      id: {
+        from: "user_id",
+        db: "users.user_id",
+        description: "User id",
+        dtoDescription: "this is user ID",
+      },
       displayName: { from: "profile.name", description: "Display name" },
     };
   `;
@@ -43,7 +48,7 @@ describe("generateJSDocFromSpec", () => {
     const output = generateJSDocFromSpec(fixture());
 
     expect(output).toContain("export interface User");
-    expect(output).toContain("* DTO: UserDto.user_id");
+    expect(output).toContain("* DTO: UserDto.user_id 유저의 id입니다.");
     expect(output).toContain("* DTO type: string");
     expect(output).toContain("* DB: users.user_id");
     expect(output).toContain("displayName: string;");

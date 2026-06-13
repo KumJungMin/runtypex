@@ -34,7 +34,8 @@ export function generateJSDocFromSpec(params: {
       lines.push(`   * ${_escapeComment(rule.description)}`);
       lines.push("   *");
     }
-    lines.push(`   * DTO: ${dtoName}.${rule.from}`);
+    const dtoDescription = rule.dtoDescription ? ` ${_escapeComment(rule.dtoDescription)}` : "";
+    lines.push(`   * DTO: ${dtoName}.${rule.from}${dtoDescription}`);
     lines.push(`   * DTO type: ${dtoPathType ? checker.typeToString(dtoPathType) : "unknown"}`);
     if (rule.db) lines.push(`   * DB: ${_escapeComment(rule.db)}`);
     lines.push(`   * Domain type: ${checker.typeToString(domainType)}`);

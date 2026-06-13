@@ -12,6 +12,7 @@ export type MapRuleInfo = {
   from: string;
   db?: string;
   description?: string;
+  dtoDescription?: string;
 };
 
 export function emitMapperFromSpec(params: {
@@ -117,6 +118,7 @@ function _readRuleObject(object: ts.ObjectLiteralExpression): Omit<MapRuleInfo, 
     from,
     db: _readStringProperty(object, "db") ?? undefined,
     description: _readStringProperty(object, "description") ?? undefined,
+    dtoDescription: _readStringProperty(object, "dtoDescription") ?? undefined,
   };
 }
 
@@ -127,6 +129,7 @@ function _readMetadata(node: ts.Expression | undefined): Partial<Omit<MapRuleInf
   return {
     db: _readStringProperty(expr, "db") ?? undefined,
     description: _readStringProperty(expr, "description") ?? undefined,
+    dtoDescription: _readStringProperty(expr, "dtoDescription") ?? undefined,
   };
 }
 

@@ -27,6 +27,7 @@ export type Mapper<TDto, TDomain> = (dto: TDto) => TDomain;
 export type MapperMetadata<TValue = never> = {
   db?: string;
   description?: string;
+  dtoDescription?: string;
   default?: TValue;
 };
 
