@@ -86,21 +86,22 @@ describe("generateJSDocFromSpec", () => {
     const output = generateJSDocFromSpec(fixture());
 
     expect(output).toContain("export interface User");
-    expect(output).toContain("* DTO: UserDto.user_id\n   *      유저의 id입니다.");
-    expect(output).toContain("* DTO type: string");
-    expect(output).toContain("* DB: users.user_id");
+    expect(output).toContain("* - DTO: `UserDto.user_id`");
+    expect(output).toContain("* - DTO description: 유저의 id입니다.");
+    expect(output).toContain("* - DTO type: `string`");
+    expect(output).toContain("* - Origin: `users.user_id`");
     expect(output).toContain("displayName: string;");
   });
 
-  it("splits DTO metadata across readable JSDoc lines", () => {
+  it("formats DTO metadata as a Markdown list for hover readability", () => {
     const output = generateJSDocFromSpec(addressFixture());
 
     expect(output).toContain(`  /**
-   * DTO: SearchAddressDto.RESULT.ID
-   *      Address identifier from the API response.
-   * DTO type: string
-   * DB: address.id
-   * Domain type: string
+   * - DTO: \`SearchAddressDto.RESULT.ID\`
+   * - DTO description: Address identifier from the API response.
+   * - DTO type: \`string\`
+   * - Origin: \`address.id\`
+   * - Domain type: \`string\`
    */
   id: string;`);
   });
@@ -114,8 +115,9 @@ describe("generateJSDocFromSpec", () => {
 
     const jsDocLines = output.split("\n").filter((line) => line.trim().startsWith("*"));
 
-    expect(output).toContain("* DTO: UserDto.user_id\n   *      Address identifier");
-    expect(output).toContain("*      address domain field for search results.");
+    expect(output).toContain("* - DTO: `UserDto.user_id`");
+    expect(output).toContain("* - DTO description: Address identifier");
+    expect(output).toContain("*   the normalized address domain field for search results.");
     expect(jsDocLines.every((line) => line.length <= 81)).toBe(true);
   });
 

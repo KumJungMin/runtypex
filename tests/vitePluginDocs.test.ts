@@ -94,9 +94,9 @@ describe("vitePlugin docs generation", () => {
 
     expect(generated).toContain("export interface SearchAddressDomain");
     expect(generated).toContain("* Address id");
-    expect(generated).toContain("* DTO: SearchAddressDto.RESULT.ID");
-    expect(generated).toContain("*      Address identifier from the API response.");
-    expect(generated).toContain("* DB: address.id");
+    expect(generated).toContain("* - DTO: `SearchAddressDto.RESULT.ID`");
+    expect(generated).toContain("* - DTO description: Address identifier from the API response.");
+    expect(generated).toContain("* - Origin: `address.id`");
     expect(generated).toContain("title: string;");
     expect(generated).toContain("export interface SearchAddressSummary");
     expect(generated).toContain("* Display title");
@@ -170,7 +170,7 @@ describe("vitePlugin docs generation", () => {
     );
 
     expect(generated).toContain("export interface SearchAddressDomain");
-    expect(generated).toContain("* DTO: SearchAddressDto.RESULT.ID");
+    expect(generated).toContain("* - DTO: `SearchAddressDto.RESULT.ID`");
   });
 
   it("fails on generated interface name collisions in the same output file", () => {

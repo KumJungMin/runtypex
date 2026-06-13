@@ -66,8 +66,8 @@ Field meanings:
 | Field | Meaning |
 | --- | --- |
 | Domain property JSDoc | Domain field description. Usually used as the first JSDoc sentence. |
-| `dtoDescription` | Optional explanation shown below the DTO path line. |
-| `db` | Optional database table and column reference. |
+| `dtoDescription` | Optional explanation shown as the `DTO description` bullet. |
+| `db` | Optional origin field shown as the `Origin` bullet. |
 
 For older mapper specs, `description` is still read as a fallback when the
 domain property has no JSDoc. New code should prefer domain property JSDoc so
@@ -95,11 +95,11 @@ the generated documentation can look like this:
 /**
  * User id
  *
- * DTO: UserDto.user_id
- *      Identifier returned by the user API.
- * DTO type: string
- * DB: users.user_id
- * Domain type: string
+ * - DTO: `UserDto.user_id`
+ * - DTO description: Identifier returned by the user API.
+ * - DTO type: `string`
+ * - Origin: `users.user_id`
+ * - Domain type: `string`
  */
 id: string;
 ```

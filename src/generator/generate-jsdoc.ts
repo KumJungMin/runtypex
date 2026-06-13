@@ -44,13 +44,17 @@ export function generateJSDocFromSpec(params: {
       _pushJSDocText(lines, _escapeComment(description));
       lines.push("   *");
     }
-    _pushJSDocField(lines, "DTO", `${dtoName}.${rule.from}`);
+    _pushJSDocBulletField(lines, "DTO", _formatCodeSpan(`${dtoName}.${rule.from}`));
     if (rule.dtoDescription) {
-      _pushJSDocText(lines, _escapeComment(rule.dtoDescription), "     ");
+      _pushJSDocBulletField(lines, "DTO description", _escapeComment(rule.dtoDescription));
     }
-    _pushJSDocField(lines, "DTO type", dtoPathType ? checker.typeToString(dtoPathType) : "unknown");
-    if (rule.db) _pushJSDocField(lines, "DB", _escapeComment(rule.db));
-    _pushJSDocField(lines, "Domain type", checker.typeToString(domainType));
+    _pushJSDocBulletField(
+      lines,
+      "DTO type",
+      _formatCodeSpan(dtoPathType ? checker.typeToString(dtoPathType) : "unknown")
+    );
+    if (rule.db) _pushJSDocBulletField(lines, "Origin", _formatCodeSpan(rule.db));
+    _pushJSDocBulletField(lines, "Domain type", _formatCodeSpan(checker.typeToString(domainType)));
     lines.push("   */");
     lines.push(`  ${_propertyName(prop.name)}${optional}: ${checker.typeToString(domainType)};`);
     lines.push("");
@@ -97,8 +101,8 @@ function _getDomainDescription(checker: ts.TypeChecker, prop: ts.Symbol): string
   return description || null;
 }
 
-function _pushJSDocField(lines: string[], label: string, value: string): void {
-  _pushJSDocText(lines, `${label}: ${value}`, "", " ".repeat(label.length + 2));
+function _pushJSDocBulletField(lines: string[], label: string, value: string): void {
+  _pushJSDocText(lines, `- ${label}: ${value}`, "", "  ");
 }
 
 function _pushJSDocText(
@@ -132,4 +136,12 @@ function _wrapJSDocText(text: string, firstIndent: string, continuationIndent: s
 
   lines.push(current.trimEnd());
   return lines;
+}
+
+function _formatCodeSpan(value: string): string {
+  return `\`${_escapeMarkdownCode(_escapeComment(value))}\``;
+}
+
+function _escapeMarkdownCode(value: string): string {
+  return value.replace(/`/g, "\\`");
 }
