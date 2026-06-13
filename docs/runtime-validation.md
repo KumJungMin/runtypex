@@ -54,6 +54,77 @@ const isUser = (v) =>
 
 No runtime reflection is required. The generated code is plain JavaScript.
 
+## Build-Time vs Runtime Fallback
+
+`makeValidate<T>()` and `makeAssert<T>()` are useful only as build-time markers
+unless the transformer runs. The TypeScript type `T` is erased at runtime, so the
+plain runtime fallback cannot inspect it.
+
+### `makeValidate<T>()`
+
+You write:
+
+```ts
+const isUser = makeValidate<User>();
+```
+
+With the Vite plugin or TypeScript transformer enabled, the call is replaced in
+the transformed source file with a generated predicate:
+
+```ts
+const isUser = (input) =>
+  typeof input === "object" &&
+  input !== null &&
+  typeof input.id === "number" &&
+  typeof input.name === "string";
+```
+
+No extra schema file is created. The generated function is inlined into the file
+that contained `makeValidate<User>()`.
+
+Without the transformer, the package runtime fallback is used:
+
+```ts
+function __validate<T>(_value: unknown): boolean {
+  return true;
+}
+
+export function makeValidate<T>() {
+  return (value: unknown): value is T => __validate<T>(value);
+}
+```
+
+That fallback is intentionally only a placeholder. It does not validate the
+shape of `T`.
+
+### `makeAssert<T>()`
+
+You write:
+
+```ts
+const assertUser = makeAssert<User>();
+```
+
+With the transformer enabled, the call is replaced with an assertion function
+that closes over the generated predicate:
+
+```ts
+const assertUser = (function () {
+  const G = (input) =>
+    typeof input === "object" &&
+    input !== null &&
+    typeof input.id === "number" &&
+    typeof input.name === "string";
+
+  return (input) => {
+    if (!G(input)) throw new TypeError("[runtypex] Validation failed.");
+  };
+})();
+```
+
+Without the transformer, `makeAssert<T>()` calls `makeValidate<T>()`, so it uses
+the same placeholder fallback and does not validate `T`.
+
 ## Production Removal
 
 When `removeInProd: true` is enabled and `NODE_ENV` is `production`,

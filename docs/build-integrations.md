@@ -53,6 +53,10 @@ export const addressMap = defineMap<
 It generates `SearchAddressDomain` by removing the `Source` suffix and writes
 all generated interfaces for the same folder to `runtypex.generated.ts`.
 
+Unlike `makeValidate<T>()`, `makeAssert<T>()`, and `makeMapper<TDto, TDomain>()`,
+docs generation does create a file. When `docs` is not configured, no
+`runtypex.generated.ts` file is written.
+
 Docs options:
 
 | Option | Default | Description |

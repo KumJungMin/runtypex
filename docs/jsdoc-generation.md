@@ -25,6 +25,57 @@ The plugin finds `defineMap<TDto, TDomainSource>()(...)` calls in included mappe
 files, removes the `Source` suffix from `TDomainSource`, and writes generated
 interfaces to `runtypex.generated.ts` next to the mapper file.
 
+## Build-Time vs No Build Integration
+
+Docs generation runs from the Vite plugin `buildStart` hook. It is not a runtime
+API and it does not change application code.
+
+With `docs.include` configured, each matching mapper file is scanned during the
+build:
+
+```ts
+// src/features/address/address.mapper.ts
+export interface SearchAddressDomainSource {
+  /** Address id */
+  id: string;
+}
+
+export const addressMap = defineMap<
+  SearchAddressDto,
+  SearchAddressDomainSource
+>()({
+  id: source("RESULT.ID", {
+    db: "address.id",
+    dtoDescription: "Address identifier from the API response.",
+  }),
+});
+```
+
+The plugin writes a generated file next to the mapper file:
+
+```ts
+// src/features/address/runtypex.generated.ts
+export interface SearchAddressDomain {
+  /**
+   * Address id
+   *
+   * - DTO: `SearchAddressDto.RESULT.ID`
+   * - DTO description: Address identifier from the API response.
+   * - DTO type: `string`
+   * - Origin: `address.id`
+   * - Domain type: `string`
+   */
+  id: string;
+}
+```
+
+No application runtime code is emitted for docs generation. The only output is
+the generated `.ts` documentation file.
+
+Without `docs` configured, or without running the Vite plugin, no docs file is
+created. Mapper files remain unchanged, and `generateJSDocFromSpec()` is only
+available as a manual build-tool API.
+
 ## Manual API
 
 ```ts
