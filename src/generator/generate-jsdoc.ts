@@ -2,6 +2,8 @@ import ts from "typescript";
 import { parsePath } from "../core/path.js";
 import { findMapPolicyViolations, handleMapPolicyViolations, readMapRules } from "../core/emitMapperFromSpec.js";
 
+const JSDOC_CONTENT_WIDTH = 76;
+
 export type GenerateJSDocOptions = {
   name?: string;
   mappingPolicy?: ts.Expression;
@@ -38,14 +40,16 @@ export function generateJSDocFromSpec(params: {
 
     lines.push("  /**");
     if (rule.description) {
-      lines.push(`   * ${_escapeComment(rule.description)}`);
+      _pushJSDocText(lines, _escapeComment(rule.description));
       lines.push("   *");
     }
-    const dtoDescription = rule.dtoDescription ? ` ${_escapeComment(rule.dtoDescription)}` : "";
-    lines.push(`   * DTO: ${dtoName}.${rule.from}${dtoDescription}`);
-    lines.push(`   * DTO type: ${dtoPathType ? checker.typeToString(dtoPathType) : "unknown"}`);
-    if (rule.db) lines.push(`   * DB: ${_escapeComment(rule.db)}`);
-    lines.push(`   * Domain type: ${checker.typeToString(domainType)}`);
+    _pushJSDocField(lines, "DTO", `${dtoName}.${rule.from}`);
+    if (rule.dtoDescription) {
+      _pushJSDocText(lines, _escapeComment(rule.dtoDescription), "     ");
+    }
+    _pushJSDocField(lines, "DTO type", dtoPathType ? checker.typeToString(dtoPathType) : "unknown");
+    if (rule.db) _pushJSDocField(lines, "DB", _escapeComment(rule.db));
+    _pushJSDocField(lines, "Domain type", checker.typeToString(domainType));
     lines.push("   */");
     lines.push(`  ${_propertyName(prop.name)}${optional}: ${checker.typeToString(domainType)};`);
     lines.push("");
@@ -85,4 +89,41 @@ function _propertyName(name: string): string {
 
 function _escapeComment(value: string): string {
   return value.replace(/\*\//g, "* /");
+}
+
+function _pushJSDocField(lines: string[], label: string, value: string): void {
+  _pushJSDocText(lines, `${label}: ${value}`, "", " ".repeat(label.length + 2));
+}
+
+function _pushJSDocText(
+  lines: string[],
+  text: string,
+  firstIndent = "",
+  continuationIndent = firstIndent
+): void {
+  for (const line of _wrapJSDocText(text, firstIndent, continuationIndent)) {
+    lines.push(`   * ${line}`);
+  }
+}
+
+function _wrapJSDocText(text: string, firstIndent: string, continuationIndent: string): string[] {
+  const words = text.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  if (!words.length) return [firstIndent.trimEnd()];
+
+  const lines: string[] = [];
+  let current = firstIndent;
+
+  for (const word of words) {
+    const candidate = current.trim().length ? `${current} ${word}` : `${current}${word}`;
+    if (candidate.length <= JSDOC_CONTENT_WIDTH || !current.trim().length) {
+      current = candidate;
+      continue;
+    }
+
+    lines.push(current.trimEnd());
+    current = `${continuationIndent}${word}`;
+  }
+
+  lines.push(current.trimEnd());
+  return lines;
 }

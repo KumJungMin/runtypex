@@ -37,7 +37,7 @@ Field meanings:
 | Field | Meaning |
 | --- | --- |
 | `description` | Domain field description. Usually used as the first JSDoc sentence. |
-| `dtoDescription` | Optional explanation attached to the DTO path line. |
+| `dtoDescription` | Optional explanation shown below the DTO path line. |
 | `db` | Optional database table and column reference. |
 
 ## Generated Output
@@ -58,7 +58,8 @@ the generated documentation can look like this:
 /**
  * User id
  *
- * DTO: UserDto.user_id Identifier returned by the user API.
+ * DTO: UserDto.user_id
+ *      Identifier returned by the user API.
  * DTO type: string
  * DB: users.user_id
  * Domain type: string
