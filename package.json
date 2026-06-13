@@ -24,6 +24,16 @@
       "import": "./dist/esm/core/index.js",
       "require": "./dist/cjs/core/index.js"
     },
+    "./mapper": {
+      "types": "./dist/esm/mapper/index.d.ts",
+      "import": "./dist/esm/mapper/index.js",
+      "require": "./dist/cjs/mapper/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/esm/runtime/index.d.ts",
+      "import": "./dist/esm/runtime/index.js",
+      "require": "./dist/cjs/runtime/index.js"
+    },
     "./transformer/vite-plugin": {
       "types": "./dist/esm/transformer/vite-plugin.d.ts",
       "import": "./dist/esm/transformer/vite-plugin.js",
