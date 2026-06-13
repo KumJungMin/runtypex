@@ -25,6 +25,45 @@ When a target call is found, the plugin creates a TypeScript program for the
 nearest `tsconfig.json`, runs the transformer, and returns the transformed code
 to Vite.
 
+The Vite plugin can also generate mapper documentation by convention:
+
+```ts
+export default defineConfig({
+  plugins: [
+    runtypex({
+      docs: {
+        include: "src/features/**/*.mapper.ts",
+      },
+    }),
+  ],
+});
+```
+
+For each included mapper file, runtypex finds declarations like:
+
+```ts
+export const addressMap = defineMap<
+  SearchAddressDto,
+  SearchAddressDomainSource
+>()({
+  id: source("RESULT.ID"),
+});
+```
+
+It generates `SearchAddressDomain` by removing the `Source` suffix and writes
+all generated interfaces for the same folder to `runtypex.generated.ts`.
+
+Docs options:
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `include` | `**/*.mapper.ts`, `**/*.mapper.tsx` | Mapper files to scan, relative to the Vite root. |
+| `exclude` | generated file name | Files to skip. |
+| `sourceSuffix` | `Source` | Domain type suffix removed for the generated interface name. |
+| `generatedFileName` | `runtypex.generated.ts` | File written next to each mapper file. |
+| `outDir` | `near-source` | Currently only near-source generation is supported. |
+| `policyMode` | `warn` | Use `error` to fail when a mapper violates docs conventions. |
+
 ## ts-loader
 
 ```js

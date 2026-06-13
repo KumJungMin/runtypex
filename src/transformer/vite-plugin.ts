@@ -2,7 +2,14 @@
 import type { Plugin } from "vite";
 import ts from "typescript";
 import path from "node:path";
+import fs from "node:fs";
+import { generateDocsFromProgram, type RuntypexDocsOptions } from "../generator/generate-docs.js";
 import tsTransformer from "./ts-transformer.js";
+
+export type RuntypexVitePluginOptions = {
+  removeInProd?: boolean;
+  docs?: RuntypexDocsOptions;
+};
 
 /**
  * 🧩 vitePluginRuntypex
@@ -18,12 +25,28 @@ import tsTransformer from "./ts-transformer.js";
  *  - Optional: remove validation code in production (`removeInProd`)
  *  - Compatible with Rollup / Webpack (via Vite plugin API)
  */
-export default function vitePluginRuntypex(options?: { removeInProd?: boolean }): Plugin {
+export default function vitePluginRuntypex(options?: RuntypexVitePluginOptions): Plugin {
   const removeInProd = !!options?.removeInProd;
+  let root = process.cwd();
 
   return {
     name: "vite-plugin-runtypex",
     enforce: "pre",
+
+    configResolved(config: { root: string }) {
+      root = config.root;
+    },
+
+    buildStart() {
+      if (!options?.docs) return;
+
+      const { program } = _createProgramForRoot(root);
+      for (const file of generateDocsFromProgram({ program, rootDir: root, docs: options.docs })) {
+        fs.mkdirSync(path.dirname(file.fileName), { recursive: true });
+        if (ts.sys.fileExists(file.fileName) && ts.sys.readFile(file.fileName) === file.content) continue;
+        fs.writeFileSync(file.fileName, file.content);
+      }
+    },
 
     transform(code: string, id: string) {
       const isTS = id.endsWith(".ts") || id.endsWith(".tsx");
@@ -47,7 +70,11 @@ export default function vitePluginRuntypex(options?: { removeInProd?: boolean })
 // ① createProgram & TypeChecker
 // ──────────────────────────────────────────────
 function _createProgramFor(file: string) {
-  const tsconfig = _findNearestTsconfig(path.dirname(file));
+  return _createProgramForRoot(path.dirname(file));
+}
+
+function _createProgramForRoot(root: string) {
+  const tsconfig = _findNearestTsconfig(root);
   const cfg = ts.readConfigFile(tsconfig, ts.sys.readFile);
   if (cfg.error) throw new Error(ts.flattenDiagnosticMessageText(cfg.error.messageText, "\n"));
 

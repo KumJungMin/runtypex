@@ -57,6 +57,24 @@ export default defineConfig({
 });
 ```
 
+To generate mapper documentation by convention:
+
+```ts
+export default defineConfig({
+  plugins: [
+    runtypex({
+      docs: {
+        include: "src/features/**/*.mapper.ts",
+      },
+    }),
+  ],
+});
+```
+
+The docs generator finds `defineMap<TDto, TDomainSource>()(...)` calls under the
+included files, removes the `Source` suffix, and writes generated interfaces to
+`runtypex.generated.ts` next to the mapper file.
+
 ## Feature Docs
 
 | Feature | Description |
@@ -64,7 +82,7 @@ export default defineConfig({
 | [Runtime validation](docs/runtime-validation.md) | Generate `makeValidate<T>()` and `makeAssert<T>()` implementations from TypeScript types. |
 | [Mapper](docs/mapper.md) | Convert DTO shapes into domain shapes with typed mapping specs. |
 | [Mapping policy](docs/mapping-policy.md) | Keep DTO path to domain field names consistent across multiple mappers. |
-| [JSDoc generation](docs/jsdoc-generation.md) | Generate field documentation from mapper metadata. |
+| [JSDoc generation](docs/jsdoc-generation.md) | Generate field documentation from domain JSDoc and mapper metadata. |
 | [Build integrations](docs/build-integrations.md) | Configure Vite, ts-loader, ESM exports, and build behavior. |
 
 ## Mapper Example
@@ -78,14 +96,14 @@ interface UserDto {
   status: "ACTIVE" | "INACTIVE";
 }
 
-interface User {
+interface UserSource {
   /** User id */
   id: string;
   displayName: string;
   isActive: boolean;
 }
 
-const userMap = defineMap<UserDto, User>()({
+const userMap = defineMap<UserDto, UserSource>()({
   id: source("user_id", {
     db: "users.user_id",
     dtoDescription: "User identifier from the user DTO.",
@@ -94,7 +112,7 @@ const userMap = defineMap<UserDto, User>()({
   isActive: transform("status", (value) => value === "ACTIVE"),
 });
 
-const toUser = makeMapper<UserDto, User>(userMap);
+const toUser = makeMapper<UserDto, UserSource>(userMap);
 ```
 
 ## Why runtypex?

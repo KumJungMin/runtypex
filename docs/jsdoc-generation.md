@@ -4,7 +4,28 @@ JSDoc generation creates interface documentation from mapper metadata. It helps
 editors show where a domain field came from and which DTO or database field it
 represents.
 
-## API
+## Vite Convention
+
+```ts
+import { defineConfig } from "vite";
+import { vitePlugin as runtypex } from "runtypex";
+
+export default defineConfig({
+  plugins: [
+    runtypex({
+      docs: {
+        include: "src/features/**/*.mapper.ts",
+      },
+    }),
+  ],
+});
+```
+
+The plugin finds `defineMap<TDto, TDomainSource>()(...)` calls in included mapper
+files, removes the `Source` suffix from `TDomainSource`, and writes generated
+interfaces to `runtypex.generated.ts` next to the mapper file.
+
+## Manual API
 
 ```ts
 import { generateJSDocFromSpec } from "runtypex/generator";
@@ -17,8 +38,8 @@ const source = generateJSDocFromSpec({
 });
 ```
 
-This API is intended for build tooling that already has access to the TypeScript
-program, checker, DTO type, domain type, and mapper spec node.
+This lower-level API is intended for build tooling that already has access to
+the TypeScript program, checker, DTO type, domain type, and mapper spec node.
 
 ## Metadata Sources
 
@@ -95,7 +116,7 @@ generateJSDocFromSpec({
   domainType,
   specNode,
   options: {
-    policy,
+    mappingPolicy: policy,
     policyMode: "error",
   },
 });

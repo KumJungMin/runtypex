@@ -16,5 +16,5 @@ export {
   type MappingPolicyMode,
   type PathOf,
 } from "./runtime/mapper.js";
-export { default as vitePlugin } from "./transformer/vite-plugin.js";
+export { default as vitePlugin, type RuntypexVitePluginOptions } from "./transformer/vite-plugin.js";
 export { default as tsTransformer } from "./transformer/ts-transformer.js";
