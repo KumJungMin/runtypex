@@ -5,32 +5,71 @@
   "license": "MIT",
   "author": "KumJungMin",
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://example.com/runtypex.git"
+  },
   "exports": {
     ".": {
+      "types": "./dist/esm/index.d.ts",
       "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "types": "./dist/esm/index.d.ts"
+      "require": "./dist/cjs/index.js"
     },
-    "./transformer": {
-      "import": "./dist/esm/transformer/index.js",
-      "types": "./dist/esm/transformer/index.d.ts"
+    "./core": {
+      "types": "./dist/esm/core/index.d.ts",
+      "import": "./dist/esm/core/index.js",
+      "require": "./dist/cjs/core/index.js"
+    },
+    "./mapper": {
+      "types": "./dist/esm/mapper/index.d.ts",
+      "import": "./dist/esm/mapper/index.js",
+      "require": "./dist/cjs/mapper/index.js"
+    },
+    "./generator": {
+      "types": "./dist/esm/generator/index.d.ts",
+      "import": "./dist/esm/generator/index.js",
+      "require": "./dist/cjs/generator/index.js"
     },
     "./runtime": {
+      "types": "./dist/esm/runtime/index.d.ts",
       "import": "./dist/esm/runtime/index.js",
-      "types": "./dist/esm/runtime/index.d.ts"
+      "require": "./dist/cjs/runtime/index.js"
+    },
+    "./transformer": {
+      "types": "./dist/esm/transformer/index.d.ts",
+      "import": "./dist/esm/transformer/index.js",
+      "require": "./dist/cjs/transformer/index.js"
+    },
+    "./transformer/vite-plugin": {
+      "types": "./dist/esm/transformer/vite-plugin.d.ts",
+      "import": "./dist/esm/transformer/vite-plugin.js",
+      "require": "./dist/cjs/transformer/vite-plugin.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "test": "jest"
+    "clean": "rm -rf dist",
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.build.json",
+    "test": "jest --passWithNoTests",
+    "test:esm": "npm run build && node tests/smoke-esm.mjs"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.3"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.8.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
     "ts-patch": "^3.3.0",
-    "ts-node": "^10.9.2"
+    "typescript": "^5.9.3"
   }
 }

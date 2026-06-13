@@ -11,7 +11,7 @@ export type AssertFn<T> = (value: unknown) => asserts value is T;
 
 // Replaced by transformer to generated guard
 function __validate<T>(_value: unknown): boolean {
-  return true;  
+  return true;
 }
 
 export function makeValidate<T>(): ValidateFn<T> {

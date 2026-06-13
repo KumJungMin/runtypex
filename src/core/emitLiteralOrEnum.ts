@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { GenContext } from "./index";
+import type { GenContext } from "./index.js";
 
 /** Handles literal types and enum-like types. */
 export function emitLiteralOrEnum(_: GenContext, expr: string, t: ts.Type): string | null {

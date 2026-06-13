@@ -1,5 +1,6 @@
 import ts from "typescript";
-import type { GenContext } from "./index";
+import type { GenContext } from "./index.js";
+import { emitPropertyAccess } from "./path.js";
 
 /**
  * Handles interfaces, classes, and object-like structures.
@@ -18,8 +19,9 @@ export function emitObject(ctx: GenContext, expr: string, t: ts.Type): string | 
 
     const propType = ctx.checker.getTypeOfSymbolAtLocation(prop, declaration);
     const isOptional = (prop.getFlags() & ts.SymbolFlags.Optional) !== 0;
-    const condition = ctx.emit(`${expr}.${prop.name}`, propType);
-    const checkExpr = isOptional ? `(${expr}.${prop.name}===undefined||${condition})` : condition;
+    const propExpr = emitPropertyAccess(expr, prop.name);
+    const condition = ctx.emit(propExpr, propType);
+    const checkExpr = isOptional ? `(${propExpr}===undefined||${condition})` : condition;
     
     parts.push(checkExpr);
   }

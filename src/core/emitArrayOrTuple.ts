@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { GenContext } from "./index";
+import type { GenContext } from "./index.js";
 
 /**
  * Handles array (T[]) and tuple ([A, B]) types.

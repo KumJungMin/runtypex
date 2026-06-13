@@ -2,8 +2,7 @@
 import type { Plugin } from "vite";
 import ts from "typescript";
 import path from "node:path";
-import { emitGuardFromType } from "../core/index";
-import { resolveTypeByName } from "./helper";
+import tsTransformer from "./ts-transformer.js";
 
 /**
  * 🧩 vitePluginRuntypex
@@ -21,7 +20,6 @@ import { resolveTypeByName } from "./helper";
  */
 export default function vitePluginRuntypex(options?: { removeInProd?: boolean }): Plugin {
   const removeInProd = !!options?.removeInProd;
-  const prod = process.env.NODE_ENV === "production";
 
   return {
     name: "vite-plugin-runtypex",
@@ -29,28 +27,17 @@ export default function vitePluginRuntypex(options?: { removeInProd?: boolean })
 
     transform(code: string, id: string) {
       const isTS = id.endsWith(".ts") || id.endsWith(".tsx");
-      const isTargetFunction = /make(?:Validate|Assert)</.test(code);
+      const isTargetFunction = /make(?:Validate|Assert|Mapper)</.test(code);
       if (!isTS || !isTargetFunction) return;
 
-      const { program, checker } = _createProgramFor(id);
+      const { program } = _createProgramFor(id);
       const sf = program.getSourceFile(id);
       if (!sf) return;
 
-      let mutated = code;
+      const result = ts.transform(sf, [tsTransformer({ program, removeInProd })]);
+      const mutated = ts.createPrinter().printFile(result.transformed[0] as ts.SourceFile);
+      result.dispose();
 
-      // ① makeAssert<T>()
-      mutated = mutated.replace(
-        /makeAssert<\s*([^>]+)\s*>\s*\(\s*\)/g,
-        (_m, typeName) =>
-          _emitMakeAssert({ program, checker, sf, typeName, prod, removeInProd }) ?? _m
-      );
-
-      // ② makeValidate<T>()
-      mutated = mutated.replace(
-        /makeValidate<\s*([^>]+)\s*>\s*\(\s*\)/g,
-        (_m, typeName) =>
-          _emitMakeValidate({ program, checker, sf, typeName, prod, removeInProd }) ?? _m
-      );
       return mutated === code ? null : { code: mutated, map: null };
     },
   };
@@ -66,8 +53,7 @@ function _createProgramFor(file: string) {
 
   const parsed = ts.parseJsonConfigFileContent(cfg.config, ts.sys, path.dirname(tsconfig));
   const program = ts.createProgram({ rootNames: parsed.fileNames, options: parsed.options });
-  const checker = program.getTypeChecker();
-  return { program, checker };
+  return { program };
 }
 
 function _findNearestTsconfig(start: string): string {
@@ -82,37 +68,4 @@ function _findNearestTsconfig(start: string): string {
   const fallback = path.join(process.cwd(), "tsconfig.json");
   if (ts.sys.fileExists(fallback)) return fallback;
   throw new Error("tsconfig.json not found");
-}
-
-// ──────────────────────────────────────────────
-// ② Emit Helpers
-// ──────────────────────────────────────────────
-function _emitMakeValidate({
-  program,
-  checker,
-  sf,
-  typeName,
-  prod,
-  removeInProd,
-}: any) {
-  if (removeInProd && prod) return `((_)=>true)`;
-  const type = resolveTypeByName(program, sf, checker, typeName.trim());
-  if (!type) return null;
-  return emitGuardFromType(checker, type);
-}
-
-
-function _emitMakeAssert({
-  program,
-  checker,
-  sf,
-  typeName,
-  prod,
-  removeInProd,
-}: any) {
-  if (removeInProd && prod) return `((_)=>{})`;
-  const type = resolveTypeByName(program, sf, checker, typeName.trim());
-  if (!type) return null;
-  const guard = emitGuardFromType(checker, type);
-  return `(function(){const G=${guard};return(i)=>{if(!G(i))throw new TypeError("[runtypex] Validation failed.");};})()`;
 }
