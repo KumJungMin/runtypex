@@ -50,21 +50,58 @@ export const addressMap = defineMap<
 });
 ```
 
-It generates `SearchAddressDomain` by removing the `Source` suffix and writes
-all generated interfaces for the same folder to `runtypex.generated.ts`.
+It generates `SearchAddressDomain` by removing the `Source` suffix. By default,
+all generated interfaces for the same folder are merged into
+`runtypex.generated.ts`.
 
 Unlike `makeValidate<T>()`, `makeAssert<T>()`, and `makeMapper<TDto, TDomain>()`,
 docs generation does create a file. When `docs` is not configured, no
 `runtypex.generated.ts` file is written.
+
+Use the default `runtypex.generated.ts` file:
+
+```ts
+runtypex({
+  docs: {
+    include: "src/features/**/*.mapper.ts",
+  },
+});
+```
+
+Use a fixed custom file name:
+
+```ts
+runtypex({
+  docs: {
+    include: "src/features/**/*.mapper.ts",
+    generatedFileName: "domain.generated.ts",
+  },
+});
+```
+
+Use the source mapper file name to create one generated file per mapper:
+
+```ts
+runtypex({
+  docs: {
+    include: "src/features/**/*.mapper.ts",
+    generatedFileName: ({ sourceFileBaseName }) =>
+      sourceFileBaseName.replace(/\.mapper\.ts$/, ".generated.ts"),
+  },
+});
+```
+
+For `src/features/addressSearch/addressSearch.mapper.ts`, this writes
+`src/features/addressSearch/addressSearch.generated.ts`.
 
 Docs options:
 
 | Option | Default | Description |
 | --- | --- | --- |
 | `include` | `**/*.mapper.ts`, `**/*.mapper.tsx` | Mapper files to scan, relative to the Vite root. |
-| `exclude` | generated file name | Files to skip. |
+| `exclude` | generated file name, or `**/*.generated.ts` when `generatedFileName` is a function | Files to skip. |
 | `sourceSuffix` | `Source` | Domain type suffix removed for the generated interface name. |
-| `generatedFileName` | `runtypex.generated.ts` | File written next to each mapper file. |
+| `generatedFileName` | `runtypex.generated.ts` | File name or resolver used to choose the file written next to each mapper file. |
 | `outDir` | `near-source` | Currently only near-source generation is supported. |
 | `policyMode` | `warn` | Use `error` to fail when a mapper violates docs conventions. |
 

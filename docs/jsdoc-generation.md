@@ -23,7 +23,8 @@ export default defineConfig({
 
 The plugin finds `defineMap<TDto, TDomainSource>()(...)` calls in included mapper
 files, removes the `Source` suffix from `TDomainSource`, and writes generated
-interfaces to `runtypex.generated.ts` next to the mapper file.
+interfaces next to the mapper file. By default, interfaces in the same folder are
+merged into `runtypex.generated.ts`.
 
 ## Build-Time vs No Build Integration
 
@@ -75,6 +76,54 @@ the generated `.ts` documentation file.
 Without `docs` configured, or without running the Vite plugin, no docs file is
 created. Mapper files remain unchanged, and `generateJSDocFromSpec()` is only
 available as a manual build-tool API.
+
+## Generated File Names
+
+The default generated file name is `runtypex.generated.ts`:
+
+```ts
+runtypex({
+  docs: {
+    include: "src/features/**/*.mapper.ts",
+  },
+});
+```
+
+Use `generatedFileName` as a string when every included mapper in the same folder
+should merge into the same custom file:
+
+```ts
+runtypex({
+  docs: {
+    include: "src/features/**/*.mapper.ts",
+    generatedFileName: "domain.generated.ts",
+  },
+});
+```
+
+Use `generatedFileName` as a function when the output should follow the source
+mapper file name:
+
+```ts
+runtypex({
+  docs: {
+    include: "src/features/**/*.mapper.ts",
+    generatedFileName: ({ sourceFileBaseName }) =>
+      sourceFileBaseName.replace(/\.mapper\.ts$/, ".generated.ts"),
+  },
+});
+```
+
+For `src/features/addressSearch/addressSearch.mapper.ts`, this writes
+`src/features/addressSearch/addressSearch.generated.ts`.
+
+Docs are grouped by the resolved generated file name. If two mapper files resolve
+to the same generated file, their interfaces are merged. If that merged file
+would contain the same generated interface name twice, docs generation keeps the
+existing conflict error.
+
+When `generatedFileName` is a function, runtypex excludes `**/*.generated.ts` by
+default. If your resolver writes a different pattern, pass `exclude` explicitly.
 
 ## Manual API
 

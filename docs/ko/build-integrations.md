@@ -75,7 +75,8 @@ export const addressMap = defineMap<
 SearchAddressDomain
 ```
 
-생성된 인터페이스들은 각 매퍼 파일과 같은 폴더의 `runtypex.generated.ts` 파일에 기록됩니다.
+기본 설정에서는 생성된 인터페이스들이 각 매퍼 파일과 같은 폴더의
+`runtypex.generated.ts` 파일에 합쳐져 기록됩니다.
 
 > `makeValidate<T>()`, `makeAssert<T>()`, `makeMapper<TDto, TDomain>()`은 빌드 중 코드를 변환하지만,
 > `docs` 옵션은 실제 파일인 `runtypex.generated.ts`를 생성합니다.
@@ -84,14 +85,55 @@ SearchAddressDomain
 
 <br/>
 
+## 문서 생성 파일명 설정
+
+기본 생성 파일명은 `runtypex.generated.ts`입니다.
+
+```ts
+runtypex({
+  docs: {
+    include: "src/features/**/*.mapper.ts",
+  },
+});
+```
+
+같은 폴더의 매퍼 결과를 고정된 커스텀 파일명으로 합치고 싶다면
+`generatedFileName`에 문자열을 전달합니다.
+
+```ts
+runtypex({
+  docs: {
+    include: "src/features/**/*.mapper.ts",
+    generatedFileName: "domain.generated.ts",
+  },
+});
+```
+
+원본 매퍼 파일명을 기준으로 매퍼마다 별도 generated 파일을 만들 수도 있습니다.
+
+```ts
+runtypex({
+  docs: {
+    include: "src/features/**/*.mapper.ts",
+    generatedFileName: ({ sourceFileBaseName }) =>
+      sourceFileBaseName.replace(/\.mapper\.ts$/, ".generated.ts"),
+  },
+});
+```
+
+예를 들어 `src/features/addressSearch/addressSearch.mapper.ts`는
+`src/features/addressSearch/addressSearch.generated.ts`를 생성합니다.
+
+<br/>
+
 ## 문서 생성 옵션
 
 | 옵션                  | 기본값                                 | 설명                                                          |
 | ------------------- | ----------------------------------- | ----------------------------------------------------------- |
 | `include`           | `**/*.mapper.ts`, `**/*.mapper.tsx` | Vite 루트 기준으로 스캔할 매퍼 파일 패턴입니다.                               |
-| `exclude`           | generated file name                 | 스캔에서 제외할 파일 패턴입니다.                                          |
+| `exclude`           | generated file name, 또는 함수형 `generatedFileName` 사용 시 `**/*.generated.ts` | 스캔에서 제외할 파일 패턴입니다.                                          |
 | `sourceSuffix`      | `Source`                            | 생성 인터페이스 이름을 만들 때 제거할 도메인 타입 접미사입니다.                        |
-| `generatedFileName` | `runtypex.generated.ts`             | 각 매퍼 파일 옆에 생성할 파일 이름입니다.                                    |
+| `generatedFileName` | `runtypex.generated.ts`             | 각 매퍼 파일 옆에 생성할 파일 이름 또는 파일명 resolver입니다.                       |
 | `outDir`            | `near-source`                       | 생성 파일 위치입니다. 현재는 소스 파일 근처 생성만 지원합니다.                        |
 | `policyMode`        | `warn`                              | 매퍼가 문서 생성 컨벤션을 어겼을 때의 처리 방식입니다. `error`로 설정하면 빌드 실패로 처리합니다. |
 

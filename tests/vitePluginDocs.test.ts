@@ -173,6 +173,232 @@ describe("vitePlugin docs generation", () => {
     expect(generated).toContain("* - DTO: `SearchAddressDto.RESULT.ID`");
   });
 
+  it("supports function-based generated file names", () => {
+    const root = createProject();
+    writeFile(
+      root,
+      "src/features/address/addressSearch.mapper.ts",
+      `
+        interface SearchAddressDto {
+          RESULT: { ID: string };
+        }
+
+        interface SearchAddressDomainSource {
+          /** Address id */
+          id: string;
+        }
+
+        export const addressMap = defineMap<
+          SearchAddressDto,
+          SearchAddressDomainSource
+        >()({
+          id: source("RESULT.ID"),
+        });
+      `
+    );
+
+    runDocs(root, {
+      include: "src/features/**/*.mapper.ts",
+      generatedFileName: ({ sourceFileBaseName }) =>
+        sourceFileBaseName.replace(/\.mapper\.ts$/, ".generated.ts"),
+    });
+
+    const generated = fs.readFileSync(
+      path.join(root, "src/features/address/addressSearch.generated.ts"),
+      "utf8"
+    );
+
+    expect(generated).toContain("export interface SearchAddressDomain");
+    expect(generated).toContain("* - DTO: `SearchAddressDto.RESULT.ID`");
+  });
+
+  it("passes source file context to the generated file name resolver once per mapper file", () => {
+    const root = createProject();
+    writeFile(
+      root,
+      "src/features/address/address.mapper.ts",
+      `
+        interface SearchAddressDto {
+          RESULT: { ID: string; TITLE: string };
+        }
+
+        interface SearchAddressDomainSource {
+          id: string;
+        }
+
+        export const addressMap = defineMap<
+          SearchAddressDto,
+          SearchAddressDomainSource
+        >()({
+          id: source("RESULT.ID"),
+        });
+
+        interface SearchAddressSummarySource {
+          title: string;
+        }
+
+        export const addressSummaryMap = defineMap<
+          SearchAddressDto,
+          SearchAddressSummarySource
+        >()({
+          title: source("RESULT.TITLE"),
+        });
+      `
+    );
+
+    const contexts: Array<{
+      sourceFileName: string;
+      sourceFileBaseName: string;
+      sourceFileDir: string;
+      rootDir: string;
+    }> = [];
+
+    runDocs(root, {
+      include: "src/features/**/*.mapper.ts",
+      generatedFileName: (context) => {
+        contexts.push(context);
+        return context.sourceFileBaseName.replace(/\.mapper\.ts$/, ".generated.ts");
+      },
+    });
+
+    const generated = fs.readFileSync(
+      path.join(root, "src/features/address/address.generated.ts"),
+      "utf8"
+    );
+
+    expect(contexts).toEqual([
+      {
+        sourceFileName: path.join(root, "src/features/address/address.mapper.ts"),
+        sourceFileBaseName: "address.mapper.ts",
+        sourceFileDir: path.join(root, "src/features/address"),
+        rootDir: root,
+      },
+    ]);
+    expect(generated).toContain("export interface SearchAddressDomain");
+    expect(generated).toContain("export interface SearchAddressSummary");
+  });
+
+  it("can write two generated files for two mapper files in the same folder", () => {
+    const root = createProject();
+    writeFile(
+      root,
+      "src/features/address/address.mapper.ts",
+      `
+        interface SearchAddressDto {
+          RESULT: { ID: string };
+        }
+
+        interface SearchAddressDomainSource {
+          id: string;
+        }
+
+        export const addressMap = defineMap<
+          SearchAddressDto,
+          SearchAddressDomainSource
+        >()({
+          id: source("RESULT.ID"),
+        });
+      `
+    );
+    writeFile(
+      root,
+      "src/features/address/addressSummary.mapper.ts",
+      `
+        interface SearchAddressSummaryDto {
+          RESULT: { TITLE: string };
+        }
+
+        interface SearchAddressSummarySource {
+          title: string;
+        }
+
+        export const addressSummaryMap = defineMap<
+          SearchAddressSummaryDto,
+          SearchAddressSummarySource
+        >()({
+          title: source("RESULT.TITLE"),
+        });
+      `
+    );
+
+    runDocs(root, {
+      include: "src/features/**/*.mapper.ts",
+      generatedFileName: ({ sourceFileBaseName }) =>
+        sourceFileBaseName.replace(/\.mapper\.ts$/, ".generated.ts"),
+    });
+
+    const addressGenerated = fs.readFileSync(
+      path.join(root, "src/features/address/address.generated.ts"),
+      "utf8"
+    );
+    const summaryGenerated = fs.readFileSync(
+      path.join(root, "src/features/address/addressSummary.generated.ts"),
+      "utf8"
+    );
+
+    expect(addressGenerated).toContain("export interface SearchAddressDomain");
+    expect(addressGenerated).not.toContain("SearchAddressSummary");
+    expect(summaryGenerated).toContain("export interface SearchAddressSummary");
+    expect(summaryGenerated).not.toContain("SearchAddressDomain");
+  });
+
+  it("merges docs when two mapper files resolve to the same generated file", () => {
+    const root = createProject();
+    writeFile(
+      root,
+      "src/features/address/address.mapper.ts",
+      `
+        interface SearchAddressDto {
+          RESULT: { ID: string };
+        }
+
+        interface SearchAddressDomainSource {
+          id: string;
+        }
+
+        export const addressMap = defineMap<
+          SearchAddressDto,
+          SearchAddressDomainSource
+        >()({
+          id: source("RESULT.ID"),
+        });
+      `
+    );
+    writeFile(
+      root,
+      "src/features/address/addressSummary.mapper.ts",
+      `
+        interface SearchAddressSummaryDto {
+          RESULT: { TITLE: string };
+        }
+
+        interface SearchAddressSummarySource {
+          title: string;
+        }
+
+        export const addressSummaryMap = defineMap<
+          SearchAddressSummaryDto,
+          SearchAddressSummarySource
+        >()({
+          title: source("RESULT.TITLE"),
+        });
+      `
+    );
+
+    runDocs(root, {
+      include: "src/features/**/*.mapper.ts",
+      generatedFileName: () => "combined.generated.ts",
+    });
+
+    const generated = fs.readFileSync(
+      path.join(root, "src/features/address/combined.generated.ts"),
+      "utf8"
+    );
+
+    expect(generated).toContain("export interface SearchAddressDomain");
+    expect(generated).toContain("export interface SearchAddressSummary");
+  });
+
   it("fails on generated interface name collisions in the same output file", () => {
     const root = createProject();
     writeFile(

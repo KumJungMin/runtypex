@@ -2,13 +2,24 @@ import path from "node:path";
 import ts from "typescript";
 import { generateJSDocFromSpec } from "./generate-jsdoc.js";
 
+export type GeneratedDocsFileNameContext = {
+  sourceFileName: string;
+  sourceFileBaseName: string;
+  sourceFileDir: string;
+  rootDir: string;
+};
+
+export type GeneratedDocsFileName =
+  | string
+  | ((context: GeneratedDocsFileNameContext) => string);
+
 export type RuntypexDocsOptions =
   | boolean
   | {
       include?: string | string[];
       exclude?: string | string[];
       sourceSuffix?: string;
-      generatedFileName?: string;
+      generatedFileName?: GeneratedDocsFileName;
       outDir?: "near-source";
       policyMode?: "warn" | "error";
     };
@@ -22,7 +33,7 @@ type NormalizedDocsOptions = {
   include: string[];
   exclude: string[];
   sourceSuffix: string;
-  generatedFileName: string;
+  generatedFileName: GeneratedDocsFileName;
   policyMode: "warn" | "error";
 };
 
@@ -50,8 +61,13 @@ export function generateDocsFromProgram(params: {
     .sort((a, b) => _toPosix(a.fileName).localeCompare(_toPosix(b.fileName)));
 
   for (const sourceFile of sourceFiles) {
-    for (const doc of _findMapperDocs(checker, sourceFile, options)) {
-      const fileName = path.join(path.dirname(sourceFile.fileName), options.generatedFileName);
+    const mapperDocs = _findMapperDocs(checker, sourceFile, options);
+    if (!mapperDocs.length) continue;
+
+    const generatedFileName = _resolveGeneratedFileName(sourceFile, params.rootDir, options);
+    const fileName = path.join(path.dirname(sourceFile.fileName), generatedFileName);
+
+    for (const doc of mapperDocs) {
       const docs = groups.get(fileName) ?? [];
       docs.push(doc);
       groups.set(fileName, docs);
@@ -74,13 +90,33 @@ function _normalizeDocsOptions(options: RuntypexDocsOptions): NormalizedDocsOpti
   }
 
   const generatedFileName = object.generatedFileName ?? "runtypex.generated.ts";
+  const generatedFileExcludes =
+    typeof generatedFileName === "string" ? [`**/${generatedFileName}`] : ["**/*.generated.ts"];
+
   return {
     include: _array(object.include ?? ["**/*.mapper.ts", "**/*.mapper.tsx"]),
-    exclude: [..._array(object.exclude), `**/${generatedFileName}`],
+    exclude: [..._array(object.exclude), ...generatedFileExcludes],
     sourceSuffix: object.sourceSuffix ?? "Source",
     generatedFileName,
     policyMode: object.policyMode ?? "warn",
   };
+}
+
+function _resolveGeneratedFileName(
+  sourceFile: ts.SourceFile,
+  rootDir: string,
+  options: NormalizedDocsOptions
+): string {
+  if (typeof options.generatedFileName === "function") {
+    return options.generatedFileName({
+      sourceFileName: sourceFile.fileName,
+      sourceFileBaseName: path.basename(sourceFile.fileName),
+      sourceFileDir: path.dirname(sourceFile.fileName),
+      rootDir,
+    });
+  }
+
+  return options.generatedFileName;
 }
 
 function _isIncluded(fileName: string, rootDir: string, options: NormalizedDocsOptions): boolean {
